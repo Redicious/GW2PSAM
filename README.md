@@ -11,4 +11,4 @@ Instructions
 
 
 Troubleshooting
-By calling the script ".\Gw-addons.ps1 -Verbose" (see Instruction Step 4), you can get more debug output, that might help to identify the issue.
+By calling the script ".\Gw2-addons.ps1 -Verbose" (see Instruction Step 4), you can get more debug output, that might help to identify the issue.
