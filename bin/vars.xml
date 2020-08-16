@@ -1,0 +1,61 @@
+<xml>
+    <!-- global vars -->
+    <add key="AddonTemp" value='($env:TEMP) + "\GW2Addons\"' type="ScriptBlock"/>
+    <add key="AppData" value='($env:APPDATA) + "\GW2AddonsManager\"' type="ScriptBlock"/>
+    <add key="GW2DirFile" value='{{AppData}}\GW2Dir.txt' />
+    <add key="GW2Dir" value='Get-GW2Dir' type="ScriptBlock"/>
+    <add key="GW2Exec" value='{{GW2Dir}}Gw2-64.exe'/>
+    <add key="MyAddonsFile" value='{{AppData}}MyAddons.JSON'/>
+    
+    <add key="TacODir" value='{{GW2Dir}}TacO\'/><!-- will be configurable.. at some point -->
+    <add key="TacOExec" value='{{TacODir}}GW2TacO.exe'/> 
+    <!--add key="CleanupTempDir" value="{{true}}"/-->
+    <addons>
+    <!-- 
+        This part describes the addons
+        - where und how to get them + some meta
+        - dependencies/actions to other addons
+
+        Don't mess with it
+    -->        
+        <addon id="1">
+            <add key="Name" value="Radial Mount"/>
+            <add key="DownloadURL" value='("https://github.com" + (((Invoke-WebRequest https://github.com/Friendly0Fire/GW2Radial/releases/latest -UseBasicParsing).content -split "`r`n" | select-string -pattern "`"\/.*GW2Radial\.zip`"" -AllMatches).matches.groups[0].value -replace """"));' type="ScriptBlock"/>
+            <add key="UpstreamVersion" value='("{{DownloadURL}}" | sls -pattern "download/(.*)/GW2Radial.zip" -allmatches).Matches.Groups[1].value' type="ScriptBlock"/>
+            <add key="Website" value="https://github.com/Friendly0Fire/GW2Radial"/>
+            <add key="RequiresAppClosed" value="{{GW2Exec}}"/>
+            <add key="DownloadTo" value="{{AddonTemp}}{{AddonName}}\GW2Radial.zip"/>
+            <add key="UnzipTo" value="{{AddonTemp}}{{AddonName}}_Unzip\"/>
+            <!--add key="DownloadTo" value="{{AddonTemp}}{{AddonName}}\d3d9.dll"/-->
+            <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}" cleanup="1"/>
+            <Step level="2" action="unzip" from="{{DownloadTo}}" to="{{UnzipTo}}" cleanup="1"/>
+            <Step level="3" action="move" from="{{UnzipTo}}d3d9.dll" to="{{GW2Dir}}bin64\d3d9_chainload.dll" IfIDs="4"/>
+            <Step level="3" action="move" from="{{UnzipTo}}d3d9.dll" to="{{GW2Dir}}bin64\d3d9.dll" IfNotIDs="4"/>
+        </addon>
+        <addon id="2">
+            <add key="Name" value="TacO"/>
+            <add key="DownloadURL" value="((((Invoke-WebRequest http://www.gw2taco.com/ -UseBasicParsing).content | select-string -pattern '(https:.*\.zip)' -AllMatches).matches[0].groups[1].value)+'?dl=1')"  type="ScriptBlock"/>
+            <add key="UpstreamVersion" value='("{{DownloadURL}}" | sls -pattern "GW2TacO_(.*)\.zip" -allmatches).Matches.Groups[1].value' type="ScriptBlock"/>
+            <add key="DownloadTo" value="{{AddonTemp}}{{AddonName}}\Taco.zip"/>
+            <add key="RequiresAppClosed" value="{{TacOExec}}"/>
+            <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}" cleanup="1"/>
+            <Step level="2" action="Unzip" from="{{DownloadTo}}" to="{{TacODir}}"/>
+        </addon>
+        <addon id="3">
+            <add key="Name" value="TacO Tekkit Poi"/>
+            <add key="DownloadURL" value="http://tekkitsworkshop.net/index.php/gw2-taco/download/send/2-taco-marker-packs/32-all-in-one"/>
+            <add key="UpstreamVersion" value='(Invoke-WebRequest {{DownloadURL}} -method HEAD).Headers."Last-Modified"' type="ScriptBlock"/>
+            <add key="DownloadTo" value="{{TacODir}}POIs\tw_ALL_IN_ONE.taco"/>
+            <add key="RequiresAppClosed" value="{{TacOExec}}"/>
+            <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}"/>
+        </addon>
+        <addon id="4">
+            <add key="Name" value="Arc DPS"/>
+            <add key="DownloadURL" value="https://www.deltaconnected.com/arcdps/x64/d3d9.dll"/>
+            <add key="UpstreamVersion" value='(Invoke-WebRequest {{DownloadURL}} -method HEAD).Headers."Last-Modified"' type="ScriptBlock"/>
+            <add key="DownloadTo" value="{{GW2Dir}}bin64\d3d9.dll"/>
+            <add key="RequiresAppClosed" value="{{GW2Exec}}"/>
+            <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}"/>
+        </addon>
+    </addons>
+</xml>
