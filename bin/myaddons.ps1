@@ -4,6 +4,7 @@ function Get-MyAddon {
     param(
         $id
     )
+    CreateAppdata
     if ($null -eq (get-variable -name MyAddons -scope script -ErrorAction SilentlyContinue)) {
         if (test-path -path $MyAddonsFile) {
             write-debug "local setting file exists, reading..."

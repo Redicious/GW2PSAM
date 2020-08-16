@@ -8,4 +8,4 @@ If ($PSBoundParameters["Debug"]) {
     $DebugPreference = "Continue"
 }
 $Bootstrap = $false
-$Version = "1.0"
+$Version = "1.1"

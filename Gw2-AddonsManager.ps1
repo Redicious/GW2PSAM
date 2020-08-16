@@ -8,7 +8,7 @@ If ($PSBoundParameters["Debug"]) {
     $DebugPreference = "Continue"
 }
 $Bootstrap = $false
-$Version = "1.0"
+$Version = "1.1"
 # help.ps1
 function Write-HelpPage{
     param([switch]$NoPause)
@@ -107,8 +107,18 @@ function Test-CrossContains
     return $false    
 }
 
+function CreateAppdata
+{
+    if(!(test-path $AppData))
+    {
+        new-item -type Directory -path $appData -force | out-null
+    }
+}
+
 function Get-GW2Dir {
     param([switch]$force)
+
+    CreateAppdata
     # Already selected a folder
     if ((test-path -path $GW2DirFile -erroraction stop) -and ((Get-Content -path $GW2DirFile -erroraction stop).trim() -ne '')) {
         $Guess = (Get-Content -path $GW2DirFile).trim()
@@ -258,6 +268,7 @@ function Get-MyAddon {
     param(
         $id
     )
+    CreateAppdata
     if ($null -eq (get-variable -name MyAddons -scope script -ErrorAction SilentlyContinue)) {
         if (test-path -path $MyAddonsFile) {
             write-debug "local setting file exists, reading..."

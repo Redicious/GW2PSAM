@@ -29,8 +29,18 @@ function Test-CrossContains
     return $false    
 }
 
+function CreateAppdata
+{
+    if(!(test-path $AppData))
+    {
+        new-item -type Directory -path $appData -force | out-null
+    }
+}
+
 function Get-GW2Dir {
     param([switch]$force)
+
+    CreateAppdata
     # Already selected a folder
     if ((test-path -path $GW2DirFile -erroraction stop) -and ((Get-Content -path $GW2DirFile -erroraction stop).trim() -ne '')) {
         $Guess = (Get-Content -path $GW2DirFile).trim()
