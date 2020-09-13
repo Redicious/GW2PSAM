@@ -46,7 +46,7 @@ if(!$IgnoreRemoteUpdate)
         $RemoteBin | set-content -path $LocalBinPath -ErrorAction STOP
         
         write-debug "Call myself, updated/installed..."
-        Get-Content $LocalBinPath -ErrorAction STOP | Invoke-Expression
+        Get-Content $LocalBinPath -ErrorAction STOP -raw | Invoke-Expression
         switch ($PsCmdlet.ParameterSetName) {
             "None" { GW2AddonManager -debug:$debug}
             "Help" { GW2AddonManager -help:$help -debug:$debug}
