@@ -1,4 +1,4 @@
-﻿
+
 function global:GW2AddonManager {
     [CmdletBinding(DefaultParameterSetName='None')]
 Param(
