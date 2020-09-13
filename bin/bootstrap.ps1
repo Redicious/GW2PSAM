@@ -6,7 +6,7 @@ if(!$IgnoreRemoteUpdate)
     $LocalBinPath = ($env:TEMP) + "\GW2Addons\" + (Split-Path $URL -leaf)
     if (test-path $LocalBinPath) {
         write-debug "local binary exists at $LocalBinPath , reading the file..."
-        $LocalBin = Get-Content $LocalBinPath -ErrorAction STOP -raw -encoding unicode
+        $LocalBin = Get-Content $LocalBinPath -ErrorAction STOP -raw -encoding utf8
     }
 
     if($RemoteBin -in $null,'')
@@ -27,7 +27,7 @@ if(!$IgnoreRemoteUpdate)
         }
         
         # Update local binary
-        $RemoteBin | set-content -path $LocalBinPath -ErrorAction STOP -encoding unicode
+        $RemoteBin | set-content -path $LocalBinPath -ErrorAction STOP -encoding utf8
         
         write-debug "Call myself, updated/installed..."
         Get-Content $LocalBinPath -ErrorAction STOP -raw | Invoke-Expression
