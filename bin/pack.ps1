@@ -22,4 +22,4 @@ $Result += get-content .\addon_functions.ps1 -raw
 $Result += '# main.ps1'
 $Result += get-content .\main.ps1 -raw
 $Result += '}'
-$Result -join "`r`n" | Set-Content -path ..\Gw2-AddonsManager.ps1
+$Result -join "`r`n" | Set-Content -path ..\Gw2-AddonsManager.ps1 -encoding unicode
