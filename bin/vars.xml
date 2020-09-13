@@ -6,6 +6,7 @@
     <add key="GW2Dir" value='Get-GW2Dir' type="ScriptBlock"/>
     <add key="GW2Exec" value='{{GW2Dir}}Gw2-64.exe'/>
     <add key="MyAddonsFile" value='{{AppData}}MyAddons.JSON'/>
+    <add key="LocalBinPath" value="{{AddonTemp}}Gw2-AddonsManager.ps1"/>
     
     <add key="TacODir" value='{{GW2Dir}}TacO\'/><!-- will be configurable.. at some point -->
     <add key="TacOExec" value='{{TacODir}}GW2TacO.exe'/> 

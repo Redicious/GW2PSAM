@@ -1,6 +1,5 @@
 # general functions
-function Copy-Object
-{
+function Copy-Object {
     param ( $InputObject )
     $OutputObject = New-Object PsObject
     $InputObject.psobject.properties | foreach-object {
@@ -9,32 +8,45 @@ function Copy-Object
     return $OutputObject
 }
 
-function Test-CrossContains
-{
+function Test-CrossContains {
     Param($a, $b)
-    foreach($an in $a)
-    {
-        if($b -contains $an)
-        {
+    foreach ($an in $a) {
+        if ($b -contains $an) {
             return $true
         }
     }
-    foreach($bn in $b)
-    {
-        if($a -contains $bn)
-        {
+    foreach ($bn in $b) {
+        if ($a -contains $bn) {
             return $true
         }
     }
     return $false    
 }
 
-function CreateAppdata
-{
-    if(!(test-path $AppData))
-    {
+function CreateAppdata {
+    if (!(test-path $AppData)) {
         new-item -type Directory -path $appData -force | out-null
     }
+}
+
+function CreateSortcut {
+    param([switch] $auto)
+    if ($auto) {
+        $name = "\GW2AddonManager(auto).lnk"
+        $arguments = "-noexit -ExecutionPolicy Bypass -command gc $LocalBinPath -raw | iex; GW2AddonManager -auto; Pause "
+    }
+    else {
+        $name = "\GW2AddonManager.lnk"
+        $arguments = "-noexit -ExecutionPolicy Bypass -command gc $LocalBinPath -raw | iex; GW2AddonManager; Pause "
+    }
+
+    $WshShell = New-Object -comObject WScript.Shell
+    $Shortcut = $WshShell.CreateShortcut(([Environment]::GetFolderPath("Desktop") + $name))
+    $Target = ($PSHome + "\PowerShell.exe")
+    $Shortcut.TargetPath = $Target
+    $Shortcut.Arguments = $arguments
+    $Shortcut.Save()
+    
 }
 
 function Get-GW2Dir {
@@ -44,9 +56,8 @@ function Get-GW2Dir {
     # Already selected a folder
     if ((test-path -path $GW2DirFile -erroraction stop) -and ((Get-Content -path $GW2DirFile -erroraction stop).trim() -ne '')) {
         $Guess = (Get-Content -path $GW2DirFile).trim()
-        if(!$force)
-        {
-            return ($guess.TrimEnd('\')+'\')
+        if (!$force) {
+            return ($guess.TrimEnd('\') + '\')
         }
     }     
     else {
@@ -56,16 +67,16 @@ function Get-GW2Dir {
     $Result = ask -Quest "Is this the location you have Guild Wars 2 installed? `r`n$Guess`r`n [Y]es/[N]o/[C]ancel" -ValidOptions @("Y", "N", "C")
     if ($Result -eq "Y") {
         $guess | set-content -path $GW2DirFile
-        Return ($Guess.TrimEnd('\')+'\')
+        Return ($Guess.TrimEnd('\') + '\')
         
     }
     elseif ($Result -eq "C") {
-        Return ($Guess.TrimEnd('\')+'\')
+        Return ($Guess.TrimEnd('\') + '\')
     }
     elseif ($Result -eq "N") {
-        $ResultN=  (ask -Quest "Please enter the directory manually (Rightclick this window to paste your clipboard)" -ValidateNotNullOrEmpty)
+        $ResultN = (ask -Quest "Please enter the directory manually (Rightclick this window to paste your clipboard)" -ValidateNotNullOrEmpty)
         $ResultN | set-content -path $GW2DirFile
-        return ($ResultN.TrimEnd('\')+'\')
+        return ($ResultN.TrimEnd('\') + '\')
         # Todo, shiny folder selector
     }
 
@@ -82,9 +93,8 @@ function ask {
 
     Write-Debug "ask( QUEST=$Quest | PRESELECT=$Preselect | VALIDOPTIONS=$($Validoptions -join ',') | DELIMITER=$DELIMITER | VALIDATENOTNULLOREMPTY=$ValidateNotNullOrEmpty"
 
-    if($Delimiter)
-    {
-        $RXP = "^("+($ValidOptions -join '|')+")"+"("+$Delimiter+"("+($ValidOptions -join '|')+"))*$"
+    if ($Delimiter) {
+        $RXP = "^(" + ($ValidOptions -join '|') + ")" + "(" + $Delimiter + "(" + ($ValidOptions -join '|') + "))*$"
         Write-Debug "Regular Expression for input validation: $RXP"
     }
 
@@ -103,8 +113,7 @@ function ask {
             Write-Warning "You have to answer something... or press CTRL+C to abort the script."
         }
         else {
-            if($Delimiter)
-            {
+            if ($Delimiter) {
                 Return ($Result -split ",")
             }
             else {

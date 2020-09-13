@@ -1,14 +1,66 @@
-[CmdletBinding(DefaultParameterSetName='None')]
+
+function global:GW2AddonManager {
+    [CmdletBinding(DefaultParameterSetName='None')]
 Param(
     [Parameter(Mandatory = $false,ParameterSetName='auto')][Switch] $auto,
     [Parameter(Mandatory = $false,ParameterSetName='auto')][Switch] $keepopen,
-    [Parameter(Mandatory = $false,ParameterSetName='help')][Switch] $help
+    [Parameter(Mandatory = $false,ParameterSetName='help')][Switch] $help,
+
+    [Parameter(Mandatory = $false)][Switch] $IgnoreRemoteUpdate
 )
 If ($PSBoundParameters["Debug"]) {
     $DebugPreference = "Continue"
 }
 $Bootstrap = $false
 $Version = "1.1"
+# bootstrap.ps1
+if(!$IgnoreRemoteUpdate)
+{
+    $URL = "https://gitlab.deep-space-nomads.com/Redicious/guild-wars-2-addons-manager/-/raw/master/Gw2-AddonsManager.ps1"
+    write-debug "getting remote code from $url"
+    $RemoteBin = (Invoke-WebRequest -uri $URL).Content
+    $LocalBinPath = ($env:TEMP) + "\GW2Addons\" + (Split-Path $URL -leaf)
+    if (test-path $LocalBinPath) {
+        write-debug "local binary exists at $LocalBinPath , reading the file..."
+        $LocalBin = Get-Content $LocalBinPath -ErrorAction STOP
+    }
+
+    if($RemoteBin -in $null,'')
+    {
+        write-debug "couldn't retrieve remote information"
+    }
+    elseif ($LocalBin -and !(Compare-Object -ReferenceObject $RemoteBin -DifferenceObject $LocalBin)) {
+        write-debug "No remote Update, proceeding..."
+    }
+    else {
+        if(test-path $LocalBinPath)
+        {
+            write-warning "there is an update available, updating myself..."
+            Compare-Object -ReferenceObject $RemoteBin -DifferenceObject $LocalBin
+        }
+        else {
+            write-warning "installing..."
+        }
+        
+        # Update local binary
+        $RemoteBin | set-content -path $LocalBinPath -ErrorAction STOP
+        
+        write-debug "Call myself, updated/installed..."
+        Get-Content $LocalBinPath -ErrorAction STOP | Invoke-Expression
+        switch ($PsCmdlet.ParameterSetName) {
+            "None" { GW2AddonManager -debug:$debug}
+            "Help" { GW2AddonManager -help:$help -debug:$debug}
+            "Auto" { GW2AddonManager -auto:$auto -keepopen:$keepopen -debug:$debug}
+        }      
+
+        # And cancel init of this instance, since we started a new one above
+        Return 0
+    }
+}
+else {
+    write-debug "remote ignored"
+}
+
 # help.ps1
 function Write-HelpPage{
     param([switch]$NoPause)
@@ -77,8 +129,7 @@ if($help){
 }
 # functions.ps1
 # general functions
-function Copy-Object
-{
+function Copy-Object {
     param ( $InputObject )
     $OutputObject = New-Object PsObject
     $InputObject.psobject.properties | foreach-object {
@@ -87,32 +138,45 @@ function Copy-Object
     return $OutputObject
 }
 
-function Test-CrossContains
-{
+function Test-CrossContains {
     Param($a, $b)
-    foreach($an in $a)
-    {
-        if($b -contains $an)
-        {
+    foreach ($an in $a) {
+        if ($b -contains $an) {
             return $true
         }
     }
-    foreach($bn in $b)
-    {
-        if($a -contains $bn)
-        {
+    foreach ($bn in $b) {
+        if ($a -contains $bn) {
             return $true
         }
     }
     return $false    
 }
 
-function CreateAppdata
-{
-    if(!(test-path $AppData))
-    {
+function CreateAppdata {
+    if (!(test-path $AppData)) {
         new-item -type Directory -path $appData -force | out-null
     }
+}
+
+function CreateSortcut {
+    param([switch] $auto)
+    if ($auto) {
+        $name = "\GW2AddonManager(auto).lnk"
+        $arguments = "-noexit -ExecutionPolicy Bypass -command gc $LocalBinPath -raw | iex; GW2AddonManager -auto; Pause "
+    }
+    else {
+        $name = "\GW2AddonManager.lnk"
+        $arguments = "-noexit -ExecutionPolicy Bypass -command gc $LocalBinPath -raw | iex; GW2AddonManager; Pause "
+    }
+
+    $WshShell = New-Object -comObject WScript.Shell
+    $Shortcut = $WshShell.CreateShortcut(([Environment]::GetFolderPath("Desktop") + $name))
+    $Target = ($PSHome + "\PowerShell.exe")
+    $Shortcut.TargetPath = $Target
+    $Shortcut.Arguments = $arguments
+    $Shortcut.Save()
+    
 }
 
 function Get-GW2Dir {
@@ -122,9 +186,8 @@ function Get-GW2Dir {
     # Already selected a folder
     if ((test-path -path $GW2DirFile -erroraction stop) -and ((Get-Content -path $GW2DirFile -erroraction stop).trim() -ne '')) {
         $Guess = (Get-Content -path $GW2DirFile).trim()
-        if(!$force)
-        {
-            return ($guess.TrimEnd('\')+'\')
+        if (!$force) {
+            return ($guess.TrimEnd('\') + '\')
         }
     }     
     else {
@@ -134,16 +197,16 @@ function Get-GW2Dir {
     $Result = ask -Quest "Is this the location you have Guild Wars 2 installed? `r`n$Guess`r`n [Y]es/[N]o/[C]ancel" -ValidOptions @("Y", "N", "C")
     if ($Result -eq "Y") {
         $guess | set-content -path $GW2DirFile
-        Return ($Guess.TrimEnd('\')+'\')
+        Return ($Guess.TrimEnd('\') + '\')
         
     }
     elseif ($Result -eq "C") {
-        Return ($Guess.TrimEnd('\')+'\')
+        Return ($Guess.TrimEnd('\') + '\')
     }
     elseif ($Result -eq "N") {
-        $ResultN=  (ask -Quest "Please enter the directory manually (Rightclick this window to paste your clipboard)" -ValidateNotNullOrEmpty)
+        $ResultN = (ask -Quest "Please enter the directory manually (Rightclick this window to paste your clipboard)" -ValidateNotNullOrEmpty)
         $ResultN | set-content -path $GW2DirFile
-        return ($ResultN.TrimEnd('\')+'\')
+        return ($ResultN.TrimEnd('\') + '\')
         # Todo, shiny folder selector
     }
 
@@ -160,9 +223,8 @@ function ask {
 
     Write-Debug "ask( QUEST=$Quest | PRESELECT=$Preselect | VALIDOPTIONS=$($Validoptions -join ',') | DELIMITER=$DELIMITER | VALIDATENOTNULLOREMPTY=$ValidateNotNullOrEmpty"
 
-    if($Delimiter)
-    {
-        $RXP = "^("+($ValidOptions -join '|')+")"+"("+$Delimiter+"("+($ValidOptions -join '|')+"))*$"
+    if ($Delimiter) {
+        $RXP = "^(" + ($ValidOptions -join '|') + ")" + "(" + $Delimiter + "(" + ($ValidOptions -join '|') + "))*$"
         Write-Debug "Regular Expression for input validation: $RXP"
     }
 
@@ -181,8 +243,7 @@ function ask {
             Write-Warning "You have to answer something... or press CTRL+C to abort the script."
         }
         else {
-            if($Delimiter)
-            {
+            if ($Delimiter) {
                 Return ($Result -split ",")
             }
             else {
@@ -207,6 +268,7 @@ $XMLVars = [XML]@'
     <add key="GW2Dir" value='Get-GW2Dir' type="ScriptBlock"/>
     <add key="GW2Exec" value='{{GW2Dir}}Gw2-64.exe'/>
     <add key="MyAddonsFile" value='{{AppData}}MyAddons.JSON'/>
+    <add key="LocalBinPath" value="{{AddonTemp}}Gw2-AddonsManager.ps1"/>
     
     <add key="TacODir" value='{{GW2Dir}}TacO\'/><!-- will be configurable.. at some point -->
     <add key="TacOExec" value='{{TacODir}}GW2TacO.exe'/> 
@@ -421,10 +483,10 @@ function Update-MyAddonMeta {
 
 #Update-MyAddonMeta
 # vars.ps1
-if($null -eq (Get-Variable -scope script -name 'XMLVars' -ValueOnly -ErrorAction SilentlyContinue))
-{
-    $XMLVars = [XML](get-content ".\vars.xml")
-}
+# if($null -eq (Get-Variable -scope script -name 'XMLVars' -ValueOnly -ErrorAction SilentlyContinue))
+# {
+#     $XMLVars = [XML](get-content ".\vars.xml")
+# }
 
 function ParseNodeValue ( $Node, [string]$AddonID ) {
     write-debug "ParseNodeValue $AddonID"
@@ -598,6 +660,8 @@ function Invoke-Menu {
             [PSCustomObject]@{ ID = "C"; Text = "Change GW2 Installpath (Currently ""$GW2Dir"")"; Function = '$GW2Dir = (Get-GW2Dir -force)' },
             [PSCustomObject]@{ ID = "H"; Text = "Display help page, addon information and limitations of this tool"; Function = "Write-HelpPage" },
             [PSCustomObject]@{ ID = "N"; Text = "Nothing and Refresh the menu, I changed my window size!"; Function = "" },
+            [PSCustomObject]@{ ID = "S"; Text = "Create Desktop Shortcut"; Function = "CreateSortcut" },
+            [PSCustomObject]@{ ID = "SA"; Text = "Create Desktop Shortcut with Autostart"; Function = "CreateSortcut -auto" },
             #[PSCustomObject]@{ ID = "Res"; Text = "Reset addonmanager and exit"; Function = "" }
             [PSCustomObject]@{ ID = "Q"; Text = "Quit"; Function = "Quit()" }
         ) | % { $Actions += $_ }
@@ -1035,3 +1099,4 @@ else {
 
 
 
+}

@@ -1,8 +1,12 @@
-[CmdletBinding(DefaultParameterSetName='None')]
+
+function global:GW2AddonManager {
+    [CmdletBinding(DefaultParameterSetName='None')]
 Param(
     [Parameter(Mandatory = $false,ParameterSetName='auto')][Switch] $auto,
     [Parameter(Mandatory = $false,ParameterSetName='auto')][Switch] $keepopen,
-    [Parameter(Mandatory = $false,ParameterSetName='help')][Switch] $help
+    [Parameter(Mandatory = $false,ParameterSetName='help')][Switch] $help,
+
+    [Parameter(Mandatory = $false)][Switch] $IgnoreRemoteUpdate
 )
 If ($PSBoundParameters["Debug"]) {
     $DebugPreference = "Continue"

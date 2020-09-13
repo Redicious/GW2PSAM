@@ -1,7 +1,7 @@
-if($null -eq (Get-Variable -scope script -name 'XMLVars' -ValueOnly -ErrorAction SilentlyContinue))
-{
-    $XMLVars = [XML](get-content ".\vars.xml")
-}
+# if($null -eq (Get-Variable -scope script -name 'XMLVars' -ValueOnly -ErrorAction SilentlyContinue))
+# {
+#     $XMLVars = [XML](get-content ".\vars.xml")
+# }
 
 function ParseNodeValue ( $Node, [string]$AddonID ) {
     write-debug "ParseNodeValue $AddonID"

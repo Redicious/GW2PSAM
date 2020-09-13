@@ -1,6 +1,8 @@
 # for packaging one file
 $Result = @()
 $Result += get-content .\head.ps1 -raw
+$Result += '# bootstrap.ps1'
+$Result += get-content .\bootstrap.ps1 -raw
 $Result += '# help.ps1'
 $Result += get-content .\help.ps1 -raw
 $Result += '# functions.ps1'
@@ -19,4 +21,5 @@ $Result += '# addon_functions.ps1'
 $Result += get-content .\addon_functions.ps1 -raw
 $Result += '# main.ps1'
 $Result += get-content .\main.ps1 -raw
+$Result += '}'
 $Result -join "`r`n" | Set-Content -path ..\Gw2-AddonsManager.ps1
