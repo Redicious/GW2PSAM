@@ -6,11 +6,6 @@ if(!$IgnoreRemoteUpdate)
     }
 
     
-    if(!(test-path (split-path $LocalBinPath)))
-    {
-        new-item -type Directory -path (split-path $LocalBinPath) -erroraction silentlycontinue | out-null
-    }
-
     $URL = "https://gitlab.deep-space-nomads.com/Redicious/guild-wars-2-addons-manager/-/raw/master/Gw2-AddonsManager.ps1"
     write-debug "getting remote code from $url"
     $RemoteBin = (Invoke-WebRequest -uri $URL -UseBasicParsing).Content
@@ -23,6 +18,11 @@ if(!$IgnoreRemoteUpdate)
     else {
         $VersionLocal = 0
     }  
+
+    if(!(test-path (split-path $LocalBinPath)))
+    {
+        new-item -type Directory -path (split-path $LocalBinPath) -erroraction silentlycontinue | out-null
+    }
 
     $VersionRemote = (GetVersion $RemoteBin)
     write-debug "VersionRemote= $VersionRemote, VersionLocal=$VersionLocal"
