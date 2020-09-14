@@ -22,6 +22,12 @@ if(!$IgnoreRemoteUpdate)
         [string]($strInput | select-string -pattern '\$Version.*=.*"(.*)"').matches.groups[1]
     }
 
+    
+    if(!(test-path (split-path $LocalBinPath)))
+    {
+        new-item -type Directory -path (split-path $LocalBinPath) -erroraction silentlycontinue | out-null
+    }
+
     $URL = "https://gitlab.deep-space-nomads.com/Redicious/guild-wars-2-addons-manager/-/raw/master/Gw2-AddonsManager.ps1"
     write-debug "getting remote code from $url"
     $RemoteBin = (Invoke-WebRequest -uri $URL -UseBasicParsing).Content
@@ -30,16 +36,10 @@ if(!$IgnoreRemoteUpdate)
         write-debug "local binary exists at $LocalBinPath , reading the file..."
         $LocalBin = Get-Content $LocalBinPath -ErrorAction STOP -raw 
         $VersionLocal = (GetVersion $LocalBin)
-        if(!(test-path (split-path $LocalBinPath)))
-        {
-            new-item -type Directory -path (split-path $LocalBinPath) -erroraction silentlycontinue | out-null
-        }
     }
     else {
         $VersionLocal = 0
-    }
-
-    
+    }  
 
     $VersionRemote = (GetVersion $RemoteBin)
     write-debug "VersionRemote= $VersionRemote, VersionLocal=$VersionLocal"
