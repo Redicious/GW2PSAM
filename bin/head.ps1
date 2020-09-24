@@ -12,5 +12,5 @@ If ($PSBoundParameters["Debug"]) {
     $DebugPreference = "Continue"
 }
 $Bootstrap = $false
-$Version = "1.2"
+$Version = "1.2.1" #Major.Feature/Improvement.Bugfix
 write-debug "Version = $Version"

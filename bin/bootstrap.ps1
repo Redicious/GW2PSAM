@@ -9,7 +9,7 @@ if(!$IgnoreRemoteUpdate)
     $URL = "https://gitlab.deep-space-nomads.com/Redicious/guild-wars-2-addons-manager/-/raw/master/Gw2-AddonsManager.ps1"
     write-debug "getting remote code from $url"
     $RemoteBin = (Invoke-WebRequest -uri $URL -UseBasicParsing).Content
-    $LocalBinPath = ($env:TEMP) + "\GW2Addons\" + (Split-Path $URL -leaf)
+    $LocalBinPath = ($env:APPDATA) + "\GW2AddonsManager\" + (Split-Path $URL -leaf)
     if (test-path $LocalBinPath) {
         write-debug "local binary exists at $LocalBinPath , reading the file..."
         $LocalBin = Get-Content $LocalBinPath -ErrorAction STOP -raw 

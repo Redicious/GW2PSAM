@@ -11,15 +11,6 @@ function Set-Addon {
         $addons = $addons | ? { $_.id -in $IDs }
     }
 
-
-        # $Addons | %{
-        #     $_ | fl *;
-        #     Write-host "Steps:"
-        #     $_.Steps | fl *
-        # }
-        # pause
-
-
     # Define addons we do stuff with
     $UninstallAddons = @()
     $InstallAddons = @()

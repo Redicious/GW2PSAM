@@ -33,11 +33,11 @@ function CreateSortcut {
     param([switch] $auto)
     if ($auto) {
         $name = "\GW2AddonManager(auto).lnk"
-        $arguments = "-noexit -ExecutionPolicy Bypass -command gc $LocalBinPath -raw | iex; GW2AddonManager -auto; Pause "
+        $arguments = " -ExecutionPolicy Bypass -command gc $LocalBinPath -raw | iex; GW2AddonManager -auto; Pause "
     }
     else {
         $name = "\GW2AddonManager.lnk"
-        $arguments = "-noexit -ExecutionPolicy Bypass -command gc $LocalBinPath -raw | iex; GW2AddonManager; Pause "
+        $arguments = " -ExecutionPolicy Bypass -command gc $LocalBinPath -raw | iex; GW2AddonManager; Pause "
     }
 
     $WshShell = New-Object -comObject WScript.Shell

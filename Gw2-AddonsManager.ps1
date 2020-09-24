@@ -12,7 +12,7 @@ If ($PSBoundParameters["Debug"]) {
     $DebugPreference = "Continue"
 }
 $Bootstrap = $false
-$Version = "1.2"
+$Version = "1.2.1" #Major.Feature/Improvement.Bugfix
 write-debug "Version = $Version"
 # bootstrap.ps1
 if(!$IgnoreRemoteUpdate)
@@ -26,7 +26,7 @@ if(!$IgnoreRemoteUpdate)
     $URL = "https://gitlab.deep-space-nomads.com/Redicious/guild-wars-2-addons-manager/-/raw/master/Gw2-AddonsManager.ps1"
     write-debug "getting remote code from $url"
     $RemoteBin = (Invoke-WebRequest -uri $URL -UseBasicParsing).Content
-    $LocalBinPath = ($env:TEMP) + "\GW2Addons\" + (Split-Path $URL -leaf)
+    $LocalBinPath = ($env:APPDATA) + "\GW2AddonsManager\" + (Split-Path $URL -leaf)
     if (test-path $LocalBinPath) {
         write-debug "local binary exists at $LocalBinPath , reading the file..."
         $LocalBin = Get-Content $LocalBinPath -ErrorAction STOP -raw 
@@ -182,11 +182,11 @@ function CreateSortcut {
     param([switch] $auto)
     if ($auto) {
         $name = "\GW2AddonManager(auto).lnk"
-        $arguments = "-noexit -ExecutionPolicy Bypass -command gc $LocalBinPath -raw | iex; GW2AddonManager -auto; Pause "
+        $arguments = " -ExecutionPolicy Bypass -command gc $LocalBinPath -raw | iex; GW2AddonManager -auto; Pause "
     }
     else {
         $name = "\GW2AddonManager.lnk"
-        $arguments = "-noexit -ExecutionPolicy Bypass -command gc $LocalBinPath -raw | iex; GW2AddonManager; Pause "
+        $arguments = " -ExecutionPolicy Bypass -command gc $LocalBinPath -raw | iex; GW2AddonManager; Pause "
     }
 
     $WshShell = New-Object -comObject WScript.Shell
@@ -785,15 +785,6 @@ function Set-Addon {
     if ($Select) {
         $addons = $addons | ? { $_.id -in $IDs }
     }
-
-
-        # $Addons | %{
-        #     $_ | fl *;
-        #     Write-host "Steps:"
-        #     $_.Steps | fl *
-        # }
-        # pause
-
 
     # Define addons we do stuff with
     $UninstallAddons = @()
