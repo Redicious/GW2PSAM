@@ -166,11 +166,11 @@ function UnDoAddonStep {
                     try {
                         if($step.action -eq "unzip")
                         {
-                            Write-warning "Can't perform undo for unzipping $($step.from) to $($step.to) - sorry, but the risk is too high. For now... "
+                            Write-debug "Can't perform undo for unzipping $($step.from) to $($step.to) - sorry, but the risk is too high. For now... "
                         }
                         elseif($step.from -match "\*")
                         {
-                            Write-warning "Can't perform undo for moving or copying with wildcards  $($step.from) to $($step.to) - sorry for wasting disk space, but the risk is too high. For now... "
+                            Write-debug "Can't perform undo for moving or copying with wildcards  $($step.from) to $($step.to) - sorry for wasting disk space, but the risk is too high. For now... "
                         }
                         else {
                             if(test-path -path $step.to)
