@@ -12,7 +12,7 @@ function Invoke-Menu {
 \    \_\  \        //       \/    |    \/ /_/ / /_/ (  <_> )   |  \  Y Y  \/ __ \|   |  \/ __ \_/ /_/  >  ___/|  | \/
  \______  /\__/\  / \_______ \____|__  /\____ \____ |\____/|___|  /__|_|  (____  /___|  (____  /\___  / \___  >__|   
         \/      \/          \/       \/      \/    \/           \/      \/     \/     \/     \//_____/      \/       
-    by Redicious           https://gitlab.deep-space-nomads.com/Redicious/guild-wars-2-addons-manager/`r`n" -BackgroundColor Black -ForegroundColor Red 
+    by Redicious           https://gitlab.deep-space-nomads.com/Redicious/guild-wars-2-addons-manager/`r`nv$Version" -BackgroundColor Black -ForegroundColor Red 
         }
         else {
             Write-Host "Welcome to
@@ -22,7 +22,7 @@ function Invoke-Menu {
 \    \_\  \        //       \  Addonmanager
  \______  /\__/\  / \_______ \    by Redicious
         \/      \/          \/       
- https://gitlab.deep-space-nomads.com/Redicious/guild-wars-2-addons-manager/`r`n" -BackgroundColor Black -ForegroundColor Red 
+ https://gitlab.deep-space-nomads.com/Redicious/guild-wars-2-addons-manager/`r`nv$Version" -BackgroundColor Black -ForegroundColor Red 
         } 
         
         $JA = Get-MyAddonsJoined -UpdateMeta
