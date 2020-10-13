@@ -12,7 +12,7 @@ If ($PSBoundParameters["Debug"]) {
     $DebugPreference = "Continue"
 }
 $Bootstrap = $false
-$Version = "1.2.2" #Major.Feature/Improvement.Bugfix
+$Version = "1.2.3" #Major.Feature/Improvement.Bugfix
 write-debug "Version = $Version"
 # bootstrap.ps1
 if(!$IgnoreRemoteUpdate)
@@ -68,9 +68,9 @@ if(!$IgnoreRemoteUpdate)
         write-debug "Call myself, updated/installed..."
         Get-Content $LocalBinPath -ErrorAction STOP -raw | Invoke-Expression
         switch ($PsCmdlet.ParameterSetName) {
-            "None" { GW2AddonManager -debug:$debug}
-            "Help" { GW2AddonManager -help:$help -debug:$debug}
-            "Auto" { GW2AddonManager -auto:$auto -keepopen:$keepopen -debug:$debug}
+            "None" { GW2AddonManager }
+            "Help" { GW2AddonManager -help:$help }
+            "Auto" { GW2AddonManager -auto:$auto -keepopen:$keepopen }
         }      
 
         # And cancel init of this instance, since we started a new one above
