@@ -71,8 +71,10 @@ function Set-Addon {
     else {
         Write-debug "no addons to install"
     }
-
-    Get-Item -path $AddonTemp | remove-item -Recurse -WhatIf
+    if(test-path $addontemp)
+    {
+        Get-Item -path $AddonTemp | remove-item -Recurse -WhatIf
+    }
     Save-MyAddon
 }
 
