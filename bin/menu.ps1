@@ -131,7 +131,6 @@ function Invoke-TacO {
     write-host "starting Taco $TacOExec"
     if (get-process | ? { $_.path -eq $TacOExec }) {
         Write-Warning "Taco already running!"
-        pause
     }
     else {
         Start-Process -FilePath $TacOExec -WorkingDirectory $TacoDir    
@@ -142,7 +141,6 @@ function Invoke-GW2 {
     param([switch]$Repair, [switch]$Diag)
     if (get-process | ? { $_.path -eq $GW2Exec }) {
         Write-Warning "GW2 already running!"
-        pause
     }
     else {
         if ($repair) {

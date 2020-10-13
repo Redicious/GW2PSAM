@@ -12,7 +12,7 @@ If ($PSBoundParameters["Debug"]) {
     $DebugPreference = "Continue"
 }
 $Bootstrap = $false
-$Version = "1.2.4" #Major.Feature/Improvement.Bugfix
+$Version = "1.2.5" #Major.Feature/Improvement.Bugfix
 write-debug "Version = $Version"
 # bootstrap.ps1
 if(!$IgnoreRemoteUpdate)
@@ -745,7 +745,6 @@ function Invoke-TacO {
     write-host "starting Taco $TacOExec"
     if (get-process | ? { $_.path -eq $TacOExec }) {
         Write-Warning "Taco already running!"
-        pause
     }
     else {
         Start-Process -FilePath $TacOExec -WorkingDirectory $TacoDir    
@@ -756,7 +755,6 @@ function Invoke-GW2 {
     param([switch]$Repair, [switch]$Diag)
     if (get-process | ? { $_.path -eq $GW2Exec }) {
         Write-Warning "GW2 already running!"
-        pause
     }
     else {
         if ($repair) {
