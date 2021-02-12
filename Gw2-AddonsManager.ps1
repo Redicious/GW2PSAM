@@ -327,7 +327,7 @@ $XMLVars = [XML]@'
         <addon id="3">
             <add key="Name" value="TacO Tekkit Poi"/>
             <add key="DownloadURL" value="http://tekkitsworkshop.net/index.php/gw2-taco/download/send/2-taco-marker-packs/32-all-in-one"/>
-            <add key="UpstreamVersion" value='(Invoke-WebRequest {{DownloadURL}} -method HEAD).Headers."Last-Modified"' type="ScriptBlock"/>
+            <add key="UpstreamVersion" value='(Invoke-WebRequest {{DownloadURL}} -method HEAD -UseBasicParsing).Headers."Last-Modified"' type="ScriptBlock"/>
             <add key="DownloadTo" value="{{TacODir}}POIs\tw_ALL_IN_ONE.taco"/>
             <add key="RequiresAppClosed" value="{{TacOExec}}"/>
             <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}"/>
