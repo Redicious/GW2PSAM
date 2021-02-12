@@ -12,7 +12,7 @@ If ($PSBoundParameters["Debug"]) {
     $DebugPreference = "Continue"
 }
 $Bootstrap = $false
-$Version = "1.2.6" #Major.Feature/Improvement.Bugfix
+$Version = "1.2.7" #Major.Feature/Improvement.Bugfix
 write-debug "Version = $Version"
 # bootstrap.ps1
 if(!$IgnoreRemoteUpdate)
