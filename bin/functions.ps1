@@ -61,7 +61,7 @@ function Get-GW2Dir {
         }
     }     
     else {
-        $Guess = Split-Path ((Get-ChildItem HKCU:\\system\GameConfigStore\Children\* | Get-ItemProperty).MatchedExeFullPath | ? { $_ -match 'gw2-64.exe$' } | select -first 1).trim()
+        $Guess = Split-Path ((Get-ChildItem HKCU:\\system\GameConfigStore\Children\* | Get-ItemProperty).MatchedExeFullPath | ? { $_ -match 'gw2-64.exe$' } | select-object -first 1).trim()
     }
 
     $Result = ask -Quest "Is this the location you have Guild Wars 2 installed? `r`n$Guess`r`n [Y]es/[N]o/[C]ancel" -ValidOptions @("Y", "N", "C")

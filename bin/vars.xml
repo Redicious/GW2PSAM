@@ -45,7 +45,7 @@
         <addon id="3">
             <add key="Name" value="TacO Tekkit Poi"/>
             <add key="DownloadURL" value="http://tekkitsworkshop.net/index.php/gw2-taco/download/send/2-taco-marker-packs/32-all-in-one"/>
-            <add key="UpstreamVersion" value='(Invoke-WebRequest {{DownloadURL}} -method HEAD -UseBasicParsing).Headers."Last-Modified"' type="ScriptBlock"/>
+            <add key="UpstreamVersion" value='{{DownloadURL}}' type="WebHeaderLastModified"/>
             <add key="DownloadTo" value="{{TacODir}}POIs\tw_ALL_IN_ONE.taco"/>
             <add key="RequiresAppClosed" value="{{TacOExec}}"/>
             <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}"/>
@@ -53,9 +53,20 @@
         <addon id="4">
             <add key="Name" value="Arc DPS"/>
             <add key="DownloadURL" value="https://www.deltaconnected.com/arcdps/x64/d3d9.dll"/>
-            <add key="UpstreamVersion" value='(Invoke-WebRequest {{DownloadURL}} -method HEAD -UseBasicParsing).Headers."Last-Modified"' type="ScriptBlock"/>
+            <add key="UpstreamVersion" value='{{DownloadURL}}' type="WebHeaderLastModified"/>
             <add key="DownloadTo" value="{{GW2Dir}}bin64\d3d9.dll"/>
             <add key="RequiresAppClosed" value="{{GW2Exec}}"/>
+            <add key="ArcDPSAddons" value="{{GW2Dir}}addons\arcdps"/>
+            <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}"/>
+        </addon>
+        
+        <addon id="5">
+            <add key="Name" value="Arc DPS Killproof.me"/>
+            <add key="DownloadURL" value="'https://github.com'+((((Invoke-WebRequest https://github.com/knoxfighter/arcdps-killproof.me-plugin/releases/latest/ -UseBasicParsing).content | select-string -pattern '(\/knoxfighter.*d3d9_arcdps_killproof_me\.dll)' -AllMatches).matches[0].groups[1].value))"  type="ScriptBlock"/>
+            <add key="UpstreamVersion" value='("{{DownloadURL}}" | sls -pattern "download\/v(.*)\/d3d9" -allmatches).Matches.Groups[1].value' type="ScriptBlock"/>
+            <add key="DownloadTo" value="{{GW2Dir}}bin64\d3d9_arcdps_killproof_me.dll"/>
+            <add key="RequiresAppClosed" value="{{GW2Exec}}"/>
+            <add key="RequiresAddon" value="4"/>
             <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}"/>
         </addon>
     </addons>

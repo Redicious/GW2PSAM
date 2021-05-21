@@ -15,25 +15,25 @@ function Set-Addon {
     $UninstallAddons = @()
     $InstallAddons = @()
 
-    $Addons | ? { $_.enabled -eq $false -and $_.InstalledVersion -notin '', $null } | %{ $UninstallAddons += $_ }
-    $Addons | ? { $_.enabled -eq $true -and ($_.InstalledVersion -in '', $null -or $_.InstalledVersion -ne $_.UpstreamVersion) } | %{ $InstallAddons += $_ }
+    $Addons | Where-Object { $_.enabled -eq $false -and $_.InstalledVersion -notin '', $null } | ForEach-Object{ $UninstallAddons += $_ }
+    $Addons | Where-Object { $_.enabled -eq $true -and ($_.InstalledVersion -in '', $null -or $_.InstalledVersion -ne $_.UpstreamVersion) } | ForEach-Object{ $InstallAddons += $_ }
 
     $AffectedIDs = @()
-    $UninstallAddons.ID | %{ $AffectedIDs += $_ }
-    $InstallAddons.ID | %{ $AffectedIDs += $_ }
-    $AffectedIDs = $AffectedIDs | ?{ $_ -notin '',0,$null }| Sort-Object -Unique
+    $UninstallAddons.ID | ForEach-Object{ $AffectedIDs += $_ }
+    $InstallAddons.ID | ForEach-Object{ $AffectedIDs += $_ }
+    $AffectedIDs = $AffectedIDs | Where-Object{ $_ -notin '',0,$null }| Sort-Object -Unique
 
 
 
     # Find Addons that need to be reinstalled, due to above changes
     $ReinstallAddons = $Addons | Where-Object { (Test-CrossContains -a $_.Steps.IfIds -b $AffectedIDs) -or  (Test-CrossContains -a $_.Steps.IfNotIds -b $AffectedIDs) } 
-    $ReinstallAddons | % { $UninstallAddons += $_; $InstallAddons += $_   }
+    $ReinstallAddons | ForEach-Object { $UninstallAddons += $_; $InstallAddons += $_   }
 
     write-debug "those addons need reinstallement (affectedIDs=$($AffectedIDs -join ', ')): $($ReinstallAddons.Id -join ', ')"
 
     # Check for running application
-    $UninstallAddons.RequiresAppClosed | Sort-Object -Unique | %{ RequireAppClosed -Path $_ -ErrorAction STOP } | %{ if($_ -contains "cancel") { return } else { $_ }}
-    $InstallAddons.RequiresAppClosed | Sort-Object -Unique | %{ RequireAppClosed -Path $_ -ErrorAction STOP } | %{ if($_ -contains "cancel") { return } else { $_ }}
+    $UninstallAddons.RequiresAppClosed | Sort-Object -Unique | ForEach-Object{ RequireAppClosed -Path $_ -ErrorAction STOP } | ForEach-Object{ if($_ -contains "cancel") { return } else { $_ }}
+    $InstallAddons.RequiresAppClosed | Sort-Object -Unique | ForEach-Object{ RequireAppClosed -Path $_ -ErrorAction STOP } | ForEach-Object{ if($_ -contains "cancel") { return } else { $_ }}
     
     # Find StepDepth 
     $MaxDepth = ((Get-MyAddonsJoined).Steps.Level | measure-object -max).Maximum
@@ -91,7 +91,7 @@ function DoAddonStep {
 
     Process {
         # find the correct step
-        $EnabledAddonIDs = (Get-MyAddon | ? { $_.Enabled -eq "True"}).ID | %{ [string]$_ }
+        $EnabledAddonIDs = (Get-MyAddon | Where-Object { $_.Enabled -eq "True"}).ID | ForEach-Object{ [string]$_ }
         $Step = $Addon.Steps | Where-Object { $_.level -eq [string]$level }
         write-debug "Found $($step.count) Steps, now filtering by conditions..."
         write-debug "EAIDs: $($EnabledAddonIDs -join ',')"

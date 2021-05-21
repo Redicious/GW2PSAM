@@ -5,15 +5,17 @@ Param(
     [Parameter(Mandatory = $false,ParameterSetName='auto')][Switch] $auto,
     [Parameter(Mandatory = $false,ParameterSetName='auto')][Switch] $keepopen,
     [Parameter(Mandatory = $false,ParameterSetName='help')][Switch] $help,
-
-    [Parameter(Mandatory = $false)][Switch] $IgnoreRemoteUpdate
+    [Parameter(Mandatory = $false)][Switch] $IgnoreRemoteUpdate,
+    [Parameter(Mandatory = $false)][Switch] $Exe
 )
 If ($PSBoundParameters["Debug"]) {
     $DebugPreference = "Continue"
 }
 $Bootstrap = $false
-$Version = "1.2.7" #Major.Feature/Improvement.Bugfix
+$Version = "1.3.1" #Major.Feature/Improvement.Bugfix
 write-debug "Version = $Version"
+
+
 # bootstrap.ps1
 if(!$IgnoreRemoteUpdate)
 {
@@ -28,7 +30,11 @@ if(!$IgnoreRemoteUpdate)
     $RemoteBin = (Invoke-WebRequest -uri $URL -UseBasicParsing).Content
     $AppDataPath = ($env:APPDATA) + "\GW2AddonsManager\"
     $LocalBinPath = $AppDataPath + (Split-Path $URL -leaf)
-    if (test-path $LocalBinPath) {
+    if($Exe)
+    {
+        $VersionLocal = $Version 
+    }
+    elseif (test-path $LocalBinPath) {
         write-debug "local binary exists at $LocalBinPath , reading the file..."
         $LocalBin = Get-Content $LocalBinPath -ErrorAction STOP -raw 
         $VersionLocal = (GetVersion $LocalBin)
@@ -37,7 +43,7 @@ if(!$IgnoreRemoteUpdate)
         $VersionLocal = 0
     }  
 
-    if(!(test-path (split-path $LocalBinPath)))
+    if(!$exe -and !(test-path (split-path $LocalBinPath)))
     {
         new-item -type Directory -path (split-path $LocalBinPath) -erroraction silentlycontinue | out-null
     }
@@ -53,28 +59,36 @@ if(!$IgnoreRemoteUpdate)
         write-debug "No remote Update, proceeding..."
     }
     else {
-        if(test-path $LocalBinPath)
+        if($exe)
         {
-            write-warning "there is an update available, updating myself..."
-            #Compare-Object -ReferenceObject $RemoteBin -DifferenceObject $LocalBin
+            write-warning "there is an update available"
+            pause
         }
-        else {
-            write-warning "installing..."
-        }
-        
-        # Update local binary
-        $RemoteBin | set-content -path $LocalBinPath -ErrorAction STOP
-        
-        write-debug "Call myself, updated/installed..."
-        Get-Content $LocalBinPath -ErrorAction STOP -raw | Invoke-Expression
-        switch ($PsCmdlet.ParameterSetName) {
-            "None" { GW2AddonManager }
-            "Help" { GW2AddonManager -help:$help }
-            "Auto" { GW2AddonManager -auto:$auto -keepopen:$keepopen }
-        }      
+        else
+        {
+            if(test-path $LocalBinPath)
+            {
+                write-warning "there is an update available, updating myself..."
+                #Compare-Object -ReferenceObject $RemoteBin -DifferenceObject $LocalBin
+            }
+            else {
+                write-warning "installing..."
+            }
+            
+            # Update local binary
+            $RemoteBin | set-content -path $LocalBinPath -ErrorAction STOP
+            
+            write-debug "Call myself, updated/installed..."
+            Get-Content $LocalBinPath -ErrorAction STOP -raw | Invoke-Expression
+            switch ($PsCmdlet.ParameterSetName) {
+                "None" { GW2AddonManager }
+                "Help" { GW2AddonManager -help:$help }
+                "Auto" { GW2AddonManager -auto:$auto -keepopen:$keepopen }
+            }      
 
-        # And cancel init of this instance, since we started a new one above
-        Return 0
+            # And cancel init of this instance, since we started a new one above
+            Return 0
+        }
     }
 }
 else {
@@ -211,7 +225,7 @@ function Get-GW2Dir {
         }
     }     
     else {
-        $Guess = Split-Path ((Get-ChildItem HKCU:\\system\GameConfigStore\Children\* | Get-ItemProperty).MatchedExeFullPath | ? { $_ -match 'gw2-64.exe$' } | select -first 1).trim()
+        $Guess = Split-Path ((Get-ChildItem HKCU:\\system\GameConfigStore\Children\* | Get-ItemProperty).MatchedExeFullPath | ? { $_ -match 'gw2-64.exe$' } | select-object -first 1).trim()
     }
 
     $Result = ask -Quest "Is this the location you have Guild Wars 2 installed? `r`n$Guess`r`n [Y]es/[N]o/[C]ancel" -ValidOptions @("Y", "N", "C")
@@ -327,7 +341,7 @@ $XMLVars = [XML]@'
         <addon id="3">
             <add key="Name" value="TacO Tekkit Poi"/>
             <add key="DownloadURL" value="http://tekkitsworkshop.net/index.php/gw2-taco/download/send/2-taco-marker-packs/32-all-in-one"/>
-            <add key="UpstreamVersion" value='(Invoke-WebRequest {{DownloadURL}} -method HEAD -UseBasicParsing).Headers."Last-Modified"' type="ScriptBlock"/>
+            <add key="UpstreamVersion" value='{{DownloadURL}}' type="WebHeaderLastModified"/>
             <add key="DownloadTo" value="{{TacODir}}POIs\tw_ALL_IN_ONE.taco"/>
             <add key="RequiresAppClosed" value="{{TacOExec}}"/>
             <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}"/>
@@ -335,9 +349,20 @@ $XMLVars = [XML]@'
         <addon id="4">
             <add key="Name" value="Arc DPS"/>
             <add key="DownloadURL" value="https://www.deltaconnected.com/arcdps/x64/d3d9.dll"/>
-            <add key="UpstreamVersion" value='(Invoke-WebRequest {{DownloadURL}} -method HEAD -UseBasicParsing).Headers."Last-Modified"' type="ScriptBlock"/>
+            <add key="UpstreamVersion" value='{{DownloadURL}}' type="WebHeaderLastModified"/>
             <add key="DownloadTo" value="{{GW2Dir}}bin64\d3d9.dll"/>
             <add key="RequiresAppClosed" value="{{GW2Exec}}"/>
+            <add key="ArcDPSAddons" value="{{GW2Dir}}addons\arcdps"/>
+            <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}"/>
+        </addon>
+        
+        <addon id="5">
+            <add key="Name" value="Arc DPS Killproof.me"/>
+            <add key="DownloadURL" value="'https://github.com'+((((Invoke-WebRequest https://github.com/knoxfighter/arcdps-killproof.me-plugin/releases/latest/ -UseBasicParsing).content | select-string -pattern '(\/knoxfighter.*d3d9_arcdps_killproof_me\.dll)' -AllMatches).matches[0].groups[1].value))"  type="ScriptBlock"/>
+            <add key="UpstreamVersion" value='("{{DownloadURL}}" | sls -pattern "download\/v(.*)\/d3d9" -allmatches).Matches.Groups[1].value' type="ScriptBlock"/>
+            <add key="DownloadTo" value="{{GW2Dir}}bin64\d3d9_arcdps_killproof_me.dll"/>
+            <add key="RequiresAppClosed" value="{{GW2Exec}}"/>
+            <add key="RequiresAddon" value="4"/>
             <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}"/>
         </addon>
     </addons>
@@ -525,18 +550,20 @@ function ParseNodeValue ( $Node, [string]$AddonID ) {
         if ($Node.type -eq "ScriptBlock") {
             Invoke-Expression "$Val"
         }
+        elseif ($Node.type -eq "WebHeaderLastModified") {
+            (Invoke-WebRequest $Val -method HEAD -UseBasicParsing).Headers."Last-Modified"
+        }
         else {
             $Val
         }
     }
 }
 
-function ParseValue( $Value, [string]$AddonID )
-{
+function ParseValue( $Value, [string]$AddonID ) {
     write-debug "ParseValue $AddonID $Value" 
     while ($Value | Select-String -pattern '{{(.+)}}') {
         $Attr = ($Value | Select-String -pattern '{{([\w\d]+)}}' -AllMatches).matches.groups[1].value
-        $Value = $Value -replace [REGEX]::Escape('{{'+$attr+'}}'),(GetVar -key $Attr -AddonID $AddonID) 
+        $Value = $Value -replace [REGEX]::Escape('{{' + $attr + '}}'), (GetVar -key $Attr -AddonID $AddonID) 
     }
     Return $Value
 }
@@ -544,28 +571,23 @@ function ParseValue( $Value, [string]$AddonID )
 function GetVar( [string]$key, [string]$AddonID) {
     write-debug "GetVar '$key' '$AddonID'"
     
-    if($AddonID)
-    {
-        if($key -eq "AddonName")
-        {
-            $val = (($script:addons | where-object { $_.id -eq $AddonID}).Name)
+    if ($AddonID) {
+        if ($key -eq "AddonName") {
+            $val = (($script:addons | where-object { $_.id -eq $AddonID }).Name)
         }
         else {
-            $val = (($script:addons | where-object { $_.id -eq $AddonID}).$key)    
+            $val = (($script:addons | where-object { $_.id -eq $AddonID }).$key)    
         }
     }
 
-    if($Null -eq $Val -or !$AddonID)
-    {
+    if ($Null -eq $Val -or !$AddonID) {
         $val = (Get-Variable -Scope Script -Name $key -ValueOnly)
     }
 
-    if($Null -eq $val)
-    {
+    if ($Null -eq $val) {
         Throw "couldn't get Variable $key for AddonID=$AddonID"
     }
-    else
-    {
+    else {
         return $val
     }
 }
@@ -596,10 +618,8 @@ foreach ($addon in (Select-Xml -Xml $XMLVars -XPath "/xml/addons/addon").node) {
     $script:addons | Where-Object { $_.id -eq $id } | add-member -type NoteProperty -name "Steps" -value @()
     foreach ($step in (Select-Xml -Xml $XMLVars -XPath "/xml/addons/addon[@id='$id']/Step").node) {
         $objStep = new-object system.object
-        foreach($attr in @("IfIDs","IfNotIDs","from","to","level","action"))
-        {
-            if($step.$attr)
-            {
+        foreach ($attr in @("IfIDs", "IfNotIDs", "from", "to", "level", "action")) {
+            if ($step.$attr) {
                 $objStep | add-member -type NoteProperty -name $attr -value (parsevalue -value ($step.$attr) -Addonid $id)
             }
         }
@@ -626,7 +646,7 @@ function Invoke-Menu {
 \    \_\  \        //       \/    |    \/ /_/ / /_/ (  <_> )   |  \  Y Y  \/ __ \|   |  \/ __ \_/ /_/  >  ___/|  | \/
  \______  /\__/\  / \_______ \____|__  /\____ \____ |\____/|___|  /__|_|  (____  /___|  (____  /\___  / \___  >__|   
         \/      \/          \/       \/      \/    \/           \/      \/     \/     \/     \//_____/      \/       
-    by Redicious           https://gitlab.deep-space-nomads.com/Redicious/guild-wars-2-addons-manager/`r`n                              v$Version`r`n" -BackgroundColor Black -ForegroundColor Red 
+    by Redicious           https://gitlab.deep-space-nomads.com/Redicious/guild-wars-2-addons-manager/`r`n                           v$Version $(if($exe){"(.exe)"})`r`n" -BackgroundColor Black -ForegroundColor Red 
         }
         else {
             Write-Host "Welcome to
@@ -635,13 +655,13 @@ function Invoke-Menu {
 /   \  __\   \/\/   //  ____/ 
 \    \_\  \        //       \  Addonmanager
  \______  /\__/\  / \_______ \    by Redicious
-        \/      \/          \/       v$Version
+        \/      \/          \/       v$Version $(if($exe){"(.exe)"})
  https://gitlab.deep-space-nomads.com/Redicious/guild-wars-2-addons-manager/`r`n" -BackgroundColor Black -ForegroundColor Red 
         } 
         
         $JA = Get-MyAddonsJoined -UpdateMeta
 
-        $OptionIndex = ($JA | select-object id -ExpandProperty ID | sort-object ID -Descending | select -first 1) + 1
+        $OptionIndex = ($JA | select-object id -ExpandProperty ID | sort-object ID -Descending | select-object -first 1) + 1
 
         $Actions = @()
 
@@ -655,41 +675,44 @@ function Invoke-Menu {
         # }
 
         @(
-            [PSCustomObject]@{ ID = $null; Text = "Update/install all enabled=1 and uninstall enabled=0"; Function = "Set-Addon" }
+            [PSCustomObject]@{ ID = "I"; Text = "Update/install all enabled=1 and uninstall enabled=0"; Function = "Set-Addon"; EXE=$true  }
             #[PSCustomObject]@{ ID = $null; Text = "Update/install one addon..."; Function = "Set-Addon -select" }
         ) | % { $Actions += $_ }
 
         if (($JA | ? { $_.id -eq 2 }).InstalledVersion -notin '', $null) {
             @(
-                [PSCustomObject]@{ ID = "T"; Text = "Run Taco"; Function = "Invoke-Taco" },
-                [PSCustomObject]@{ ID = "TR"; Text = "Run Taco & GW2"; Function = "Invoke-Taco; Invoke-GW2" }
+                [PSCustomObject]@{ ID = "T"; Text = "Run Taco"; Function = "Invoke-Taco"; EXE=$true  },
+                [PSCustomObject]@{ ID = "TR"; Text = "Run Taco & GW2"; Function = "Invoke-Taco; Invoke-GW2"; EXE=$true  }
             )  | % { $Actions += $_ }
         }
         else {
             @(
-                [PSCustomObject]@{ ID = "-"; Text = "Run Taco (Not installed)"; Function = "" },
-                [PSCustomObject]@{ ID = "-"; Text = "Run Taco (Not installed) & GW2"; Function = "" }
+                [PSCustomObject]@{ ID = "-"; Text = "Run Taco (Not installed)"; Function = ""; EXE=$true  },
+                [PSCustomObject]@{ ID = "-"; Text = "Run Taco (Not installed) & GW2"; Function = ""; EXE=$true  }
             )  | % { $Actions += $_ }
         }
 
         @(
-            [PSCustomObject]@{ ID = "A"; Text = "Update/Install/Uninstall + Run GW2 + Quit (like ""-auto"" parameter, ""H"" for more info)"; Function = "Invoke-AutomaticStart" },
-            [PSCustomObject]@{ ID = "R"; Text = "Run GW2"; Function = "Invoke-GW2" },
-            [PSCustomObject]@{ ID = "F"; Text = "Run GW2 Repair (takes a while)"; Function = "Invoke-GW2 -Repair" },
-            [PSCustomObject]@{ ID = "D"; Text = "Run GW2 Diagnose (takes a while)"; Function = "Invoke-GW2 -Diag" },
-            [PSCustomObject]@{ ID = "C"; Text = "Change GW2 Installpath (Currently ""$GW2Dir"")"; Function = '$GW2Dir = (Get-GW2Dir -force)' },
+            [PSCustomObject]@{ ID = "A"; Text = "Update/Install/Uninstall + Run GW2 + Quit (like ""-auto"" parameter, ""H"" for more info)"; Function = "Invoke-AutomaticStart"; EXE=$true },
+            [PSCustomObject]@{ ID = "R"; Text = "Run GW2"; Function = "Invoke-GW2"; EXE=$true  },
+            [PSCustomObject]@{ ID = "F"; Text = "Run GW2 Repair (takes a while)"; Function = "Invoke-GW2 -Repair"; EXE=$true  },
+            [PSCustomObject]@{ ID = "D"; Text = "Run GW2 Diagnose (takes a while)"; Function = "Invoke-GW2 -Diag"; EXE=$true  },
+            [PSCustomObject]@{ ID = "C"; Text = "Change GW2 Installpath (Currently ""$GW2Dir"")"; Function = '$GW2Dir = (Get-GW2Dir -force)'; EXE=$true  },
             [PSCustomObject]@{ ID = "H"; Text = "Display help page, addon information and limitations of this tool"; Function = "Write-HelpPage" },
-            [PSCustomObject]@{ ID = "N"; Text = "Nothing and Refresh the menu, I changed my window size!"; Function = "" },
-            [PSCustomObject]@{ ID = "S"; Text = "Create Desktop Shortcut"; Function = "CreateSortcut" },
+            [PSCustomObject]@{ ID = "N"; Text = "Nothing and Refresh the menu, I changed my window size!"; Function = ""; EXE=$true  },
+            [PSCustomObject]@{ ID = "S"; Text = "Create Desktop Shortcut"; Function = "CreateSortcut";},
             [PSCustomObject]@{ ID = "SA"; Text = "Create Desktop Shortcut with Autostart"; Function = "CreateSortcut -auto" },
             #[PSCustomObject]@{ ID = "Res"; Text = "Reset addonmanager and exit"; Function = "" }
-            [PSCustomObject]@{ ID = "Q"; Text = "Quit"; Function = "Quit()" }
+            [PSCustomObject]@{ ID = "Q"; Text = "Quit"; Function = "Quit()"; EXE=$true  }
         ) | % { $Actions += $_ }
 
 
-
-        $Actions | ? { $null -eq $_.id } | % { $_.id = $OptionIndex; $OptionIndex++ }
-
+        if($exe)
+        {
+            $actions = $actions | ?{ $_.Exe }
+        }
+        $Actions | Where-Object { $null -eq $_.id } | ForEach-Object { $_.id = $OptionIndex; $OptionIndex++ }
+        
         write-host "Addons" -ForegroundColor $MenuHeadColor
         $JA | select-object @{Name = 'Toggle' ; Expression = { if ($_.ID -ne "-") { "[" + $_.ID + "]" } else { " " + $_.ID + " " } } }, name, enabled, state, InstalledVersion, UpstreamVersion | Format-Table -AutoSize
 
@@ -727,7 +750,7 @@ function Invoke-Menu {
             }
             else {
                 $IEX = ($Actions | where-object { $_.ID -eq $O }).Function
-                iex $IEX    
+                Invoke-Expression $IEX    
             }
         }
     } while (1) # :-P
@@ -743,11 +766,22 @@ function Invoke-AutomaticStart {
 
 function Invoke-TacO {
     write-host "starting Taco $TacOExec"
-    if (get-process | ? { $_.path -eq $TacOExec }) {
+    if (get-process | Where-Object { $_.path -eq $TacOExec }) {
         Write-Warning "Taco already running!"
     }
     else {
-        Start-Process -FilePath $TacOExec -WorkingDirectory $TacoDir    
+        Start-Process -FilePath $TacOExec -WorkingDirectory $TacoDir
+
+        #Sometimes it does not start...WHY!??! Just wait a few seconds and then try again. 
+        $startTime = get-date   
+        while((-not (get-process | Where-Object { $_.path -eq $TacOExec })) -and (new-timespan -start $startTime).Seconds -le 10)
+        {
+            start-sleep -seconds 1
+        } 
+        if((-not (get-process | Where-Object { $_.path -eq $TacOExec })))
+        {
+            Start-Process -FilePath $TacOExec -WorkingDirectory $TacoDir
+        }
     }
 }
 
@@ -789,25 +823,25 @@ function Set-Addon {
     $UninstallAddons = @()
     $InstallAddons = @()
 
-    $Addons | ? { $_.enabled -eq $false -and $_.InstalledVersion -notin '', $null } | %{ $UninstallAddons += $_ }
-    $Addons | ? { $_.enabled -eq $true -and ($_.InstalledVersion -in '', $null -or $_.InstalledVersion -ne $_.UpstreamVersion) } | %{ $InstallAddons += $_ }
+    $Addons | Where-Object { $_.enabled -eq $false -and $_.InstalledVersion -notin '', $null } | ForEach-Object{ $UninstallAddons += $_ }
+    $Addons | Where-Object { $_.enabled -eq $true -and ($_.InstalledVersion -in '', $null -or $_.InstalledVersion -ne $_.UpstreamVersion) } | ForEach-Object{ $InstallAddons += $_ }
 
     $AffectedIDs = @()
-    $UninstallAddons.ID | %{ $AffectedIDs += $_ }
-    $InstallAddons.ID | %{ $AffectedIDs += $_ }
-    $AffectedIDs = $AffectedIDs | ?{ $_ -notin '',0,$null }| Sort-Object -Unique
+    $UninstallAddons.ID | ForEach-Object{ $AffectedIDs += $_ }
+    $InstallAddons.ID | ForEach-Object{ $AffectedIDs += $_ }
+    $AffectedIDs = $AffectedIDs | Where-Object{ $_ -notin '',0,$null }| Sort-Object -Unique
 
 
 
     # Find Addons that need to be reinstalled, due to above changes
     $ReinstallAddons = $Addons | Where-Object { (Test-CrossContains -a $_.Steps.IfIds -b $AffectedIDs) -or  (Test-CrossContains -a $_.Steps.IfNotIds -b $AffectedIDs) } 
-    $ReinstallAddons | % { $UninstallAddons += $_; $InstallAddons += $_   }
+    $ReinstallAddons | ForEach-Object { $UninstallAddons += $_; $InstallAddons += $_   }
 
     write-debug "those addons need reinstallement (affectedIDs=$($AffectedIDs -join ', ')): $($ReinstallAddons.Id -join ', ')"
 
     # Check for running application
-    $UninstallAddons.RequiresAppClosed | Sort-Object -Unique | %{ RequireAppClosed -Path $_ -ErrorAction STOP } | %{ if($_ -contains "cancel") { return } else { $_ }}
-    $InstallAddons.RequiresAppClosed | Sort-Object -Unique | %{ RequireAppClosed -Path $_ -ErrorAction STOP } | %{ if($_ -contains "cancel") { return } else { $_ }}
+    $UninstallAddons.RequiresAppClosed | Sort-Object -Unique | ForEach-Object{ RequireAppClosed -Path $_ -ErrorAction STOP } | ForEach-Object{ if($_ -contains "cancel") { return } else { $_ }}
+    $InstallAddons.RequiresAppClosed | Sort-Object -Unique | ForEach-Object{ RequireAppClosed -Path $_ -ErrorAction STOP } | ForEach-Object{ if($_ -contains "cancel") { return } else { $_ }}
     
     # Find StepDepth 
     $MaxDepth = ((Get-MyAddonsJoined).Steps.Level | measure-object -max).Maximum
@@ -865,7 +899,7 @@ function DoAddonStep {
 
     Process {
         # find the correct step
-        $EnabledAddonIDs = (Get-MyAddon | ? { $_.Enabled -eq "True"}).ID | %{ [string]$_ }
+        $EnabledAddonIDs = (Get-MyAddon | Where-Object { $_.Enabled -eq "True"}).ID | ForEach-Object{ [string]$_ }
         $Step = $Addon.Steps | Where-Object { $_.level -eq [string]$level }
         write-debug "Found $($step.count) Steps, now filtering by conditions..."
         write-debug "EAIDs: $($EnabledAddonIDs -join ',')"

@@ -12,7 +12,7 @@ function Invoke-Menu {
 \    \_\  \        //       \/    |    \/ /_/ / /_/ (  <_> )   |  \  Y Y  \/ __ \|   |  \/ __ \_/ /_/  >  ___/|  | \/
  \______  /\__/\  / \_______ \____|__  /\____ \____ |\____/|___|  /__|_|  (____  /___|  (____  /\___  / \___  >__|   
         \/      \/          \/       \/      \/    \/           \/      \/     \/     \/     \//_____/      \/       
-    by Redicious           https://gitlab.deep-space-nomads.com/Redicious/guild-wars-2-addons-manager/`r`n                              v$Version`r`n" -BackgroundColor Black -ForegroundColor Red 
+    by Redicious           https://gitlab.deep-space-nomads.com/Redicious/guild-wars-2-addons-manager/`r`n                           v$Version $(if($exe){"(.exe)"})`r`n" -BackgroundColor Black -ForegroundColor Red 
         }
         else {
             Write-Host "Welcome to
@@ -21,13 +21,13 @@ function Invoke-Menu {
 /   \  __\   \/\/   //  ____/ 
 \    \_\  \        //       \  Addonmanager
  \______  /\__/\  / \_______ \    by Redicious
-        \/      \/          \/       v$Version
+        \/      \/          \/       v$Version $(if($exe){"(.exe)"})
  https://gitlab.deep-space-nomads.com/Redicious/guild-wars-2-addons-manager/`r`n" -BackgroundColor Black -ForegroundColor Red 
         } 
         
         $JA = Get-MyAddonsJoined -UpdateMeta
 
-        $OptionIndex = ($JA | select-object id -ExpandProperty ID | sort-object ID -Descending | select -first 1) + 1
+        $OptionIndex = ($JA | select-object id -ExpandProperty ID | sort-object ID -Descending | select-object -first 1) + 1
 
         $Actions = @()
 
@@ -41,41 +41,44 @@ function Invoke-Menu {
         # }
 
         @(
-            [PSCustomObject]@{ ID = $null; Text = "Update/install all enabled=1 and uninstall enabled=0"; Function = "Set-Addon" }
+            [PSCustomObject]@{ ID = "I"; Text = "Update/install all enabled=1 and uninstall enabled=0"; Function = "Set-Addon"; EXE=$true  }
             #[PSCustomObject]@{ ID = $null; Text = "Update/install one addon..."; Function = "Set-Addon -select" }
         ) | % { $Actions += $_ }
 
         if (($JA | ? { $_.id -eq 2 }).InstalledVersion -notin '', $null) {
             @(
-                [PSCustomObject]@{ ID = "T"; Text = "Run Taco"; Function = "Invoke-Taco" },
-                [PSCustomObject]@{ ID = "TR"; Text = "Run Taco & GW2"; Function = "Invoke-Taco; Invoke-GW2" }
+                [PSCustomObject]@{ ID = "T"; Text = "Run Taco"; Function = "Invoke-Taco"; EXE=$true  },
+                [PSCustomObject]@{ ID = "TR"; Text = "Run Taco & GW2"; Function = "Invoke-Taco; Invoke-GW2"; EXE=$true  }
             )  | % { $Actions += $_ }
         }
         else {
             @(
-                [PSCustomObject]@{ ID = "-"; Text = "Run Taco (Not installed)"; Function = "" },
-                [PSCustomObject]@{ ID = "-"; Text = "Run Taco (Not installed) & GW2"; Function = "" }
+                [PSCustomObject]@{ ID = "-"; Text = "Run Taco (Not installed)"; Function = ""; EXE=$true  },
+                [PSCustomObject]@{ ID = "-"; Text = "Run Taco (Not installed) & GW2"; Function = ""; EXE=$true  }
             )  | % { $Actions += $_ }
         }
 
         @(
-            [PSCustomObject]@{ ID = "A"; Text = "Update/Install/Uninstall + Run GW2 + Quit (like ""-auto"" parameter, ""H"" for more info)"; Function = "Invoke-AutomaticStart" },
-            [PSCustomObject]@{ ID = "R"; Text = "Run GW2"; Function = "Invoke-GW2" },
-            [PSCustomObject]@{ ID = "F"; Text = "Run GW2 Repair (takes a while)"; Function = "Invoke-GW2 -Repair" },
-            [PSCustomObject]@{ ID = "D"; Text = "Run GW2 Diagnose (takes a while)"; Function = "Invoke-GW2 -Diag" },
-            [PSCustomObject]@{ ID = "C"; Text = "Change GW2 Installpath (Currently ""$GW2Dir"")"; Function = '$GW2Dir = (Get-GW2Dir -force)' },
+            [PSCustomObject]@{ ID = "A"; Text = "Update/Install/Uninstall + Run GW2 + Quit (like ""-auto"" parameter, ""H"" for more info)"; Function = "Invoke-AutomaticStart"; EXE=$true },
+            [PSCustomObject]@{ ID = "R"; Text = "Run GW2"; Function = "Invoke-GW2"; EXE=$true  },
+            [PSCustomObject]@{ ID = "F"; Text = "Run GW2 Repair (takes a while)"; Function = "Invoke-GW2 -Repair"; EXE=$true  },
+            [PSCustomObject]@{ ID = "D"; Text = "Run GW2 Diagnose (takes a while)"; Function = "Invoke-GW2 -Diag"; EXE=$true  },
+            [PSCustomObject]@{ ID = "C"; Text = "Change GW2 Installpath (Currently ""$GW2Dir"")"; Function = '$GW2Dir = (Get-GW2Dir -force)'; EXE=$true  },
             [PSCustomObject]@{ ID = "H"; Text = "Display help page, addon information and limitations of this tool"; Function = "Write-HelpPage" },
-            [PSCustomObject]@{ ID = "N"; Text = "Nothing and Refresh the menu, I changed my window size!"; Function = "" },
-            [PSCustomObject]@{ ID = "S"; Text = "Create Desktop Shortcut"; Function = "CreateSortcut" },
+            [PSCustomObject]@{ ID = "N"; Text = "Nothing and Refresh the menu, I changed my window size!"; Function = ""; EXE=$true  },
+            [PSCustomObject]@{ ID = "S"; Text = "Create Desktop Shortcut"; Function = "CreateSortcut";},
             [PSCustomObject]@{ ID = "SA"; Text = "Create Desktop Shortcut with Autostart"; Function = "CreateSortcut -auto" },
             #[PSCustomObject]@{ ID = "Res"; Text = "Reset addonmanager and exit"; Function = "" }
-            [PSCustomObject]@{ ID = "Q"; Text = "Quit"; Function = "Quit()" }
+            [PSCustomObject]@{ ID = "Q"; Text = "Quit"; Function = "Quit()"; EXE=$true  }
         ) | % { $Actions += $_ }
 
 
-
-        $Actions | ? { $null -eq $_.id } | % { $_.id = $OptionIndex; $OptionIndex++ }
-
+        if($exe)
+        {
+            $actions = $actions | ?{ $_.Exe }
+        }
+        $Actions | Where-Object { $null -eq $_.id } | ForEach-Object { $_.id = $OptionIndex; $OptionIndex++ }
+        
         write-host "Addons" -ForegroundColor $MenuHeadColor
         $JA | select-object @{Name = 'Toggle' ; Expression = { if ($_.ID -ne "-") { "[" + $_.ID + "]" } else { " " + $_.ID + " " } } }, name, enabled, state, InstalledVersion, UpstreamVersion | Format-Table -AutoSize
 
@@ -113,7 +116,7 @@ function Invoke-Menu {
             }
             else {
                 $IEX = ($Actions | where-object { $_.ID -eq $O }).Function
-                iex $IEX    
+                Invoke-Expression $IEX    
             }
         }
     } while (1) # :-P
@@ -129,11 +132,22 @@ function Invoke-AutomaticStart {
 
 function Invoke-TacO {
     write-host "starting Taco $TacOExec"
-    if (get-process | ? { $_.path -eq $TacOExec }) {
+    if (get-process | Where-Object { $_.path -eq $TacOExec }) {
         Write-Warning "Taco already running!"
     }
     else {
-        Start-Process -FilePath $TacOExec -WorkingDirectory $TacoDir    
+        Start-Process -FilePath $TacOExec -WorkingDirectory $TacoDir
+
+        #Sometimes it does not start...WHY!??! Just wait a few seconds and then try again. 
+        $startTime = get-date   
+        while((-not (get-process | Where-Object { $_.path -eq $TacOExec })) -and (new-timespan -start $startTime).Seconds -le 10)
+        {
+            start-sleep -seconds 1
+        } 
+        if((-not (get-process | Where-Object { $_.path -eq $TacOExec })))
+        {
+            Start-Process -FilePath $TacOExec -WorkingDirectory $TacoDir
+        }
     }
 }
 

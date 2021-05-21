@@ -20,18 +20,20 @@ function ParseNodeValue ( $Node, [string]$AddonID ) {
         if ($Node.type -eq "ScriptBlock") {
             Invoke-Expression "$Val"
         }
+        elseif ($Node.type -eq "WebHeaderLastModified") {
+            (Invoke-WebRequest $Val -method HEAD -UseBasicParsing).Headers."Last-Modified"
+        }
         else {
             $Val
         }
     }
 }
 
-function ParseValue( $Value, [string]$AddonID )
-{
+function ParseValue( $Value, [string]$AddonID ) {
     write-debug "ParseValue $AddonID $Value" 
     while ($Value | Select-String -pattern '{{(.+)}}') {
         $Attr = ($Value | Select-String -pattern '{{([\w\d]+)}}' -AllMatches).matches.groups[1].value
-        $Value = $Value -replace [REGEX]::Escape('{{'+$attr+'}}'),(GetVar -key $Attr -AddonID $AddonID) 
+        $Value = $Value -replace [REGEX]::Escape('{{' + $attr + '}}'), (GetVar -key $Attr -AddonID $AddonID) 
     }
     Return $Value
 }
@@ -39,28 +41,23 @@ function ParseValue( $Value, [string]$AddonID )
 function GetVar( [string]$key, [string]$AddonID) {
     write-debug "GetVar '$key' '$AddonID'"
     
-    if($AddonID)
-    {
-        if($key -eq "AddonName")
-        {
-            $val = (($script:addons | where-object { $_.id -eq $AddonID}).Name)
+    if ($AddonID) {
+        if ($key -eq "AddonName") {
+            $val = (($script:addons | where-object { $_.id -eq $AddonID }).Name)
         }
         else {
-            $val = (($script:addons | where-object { $_.id -eq $AddonID}).$key)    
+            $val = (($script:addons | where-object { $_.id -eq $AddonID }).$key)    
         }
     }
 
-    if($Null -eq $Val -or !$AddonID)
-    {
+    if ($Null -eq $Val -or !$AddonID) {
         $val = (Get-Variable -Scope Script -Name $key -ValueOnly)
     }
 
-    if($Null -eq $val)
-    {
+    if ($Null -eq $val) {
         Throw "couldn't get Variable $key for AddonID=$AddonID"
     }
-    else
-    {
+    else {
         return $val
     }
 }
@@ -91,10 +88,8 @@ foreach ($addon in (Select-Xml -Xml $XMLVars -XPath "/xml/addons/addon").node) {
     $script:addons | Where-Object { $_.id -eq $id } | add-member -type NoteProperty -name "Steps" -value @()
     foreach ($step in (Select-Xml -Xml $XMLVars -XPath "/xml/addons/addon[@id='$id']/Step").node) {
         $objStep = new-object system.object
-        foreach($attr in @("IfIDs","IfNotIDs","from","to","level","action"))
-        {
-            if($step.$attr)
-            {
+        foreach ($attr in @("IfIDs", "IfNotIDs", "from", "to", "level", "action")) {
+            if ($step.$attr) {
                 $objStep | add-member -type NoteProperty -name $attr -value (parsevalue -value ($step.$attr) -Addonid $id)
             }
         }
