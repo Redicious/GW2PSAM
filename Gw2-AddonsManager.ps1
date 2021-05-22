@@ -365,6 +365,15 @@ $XMLVars = [XML]@'
             <add key="RequiresAddon" value="4"/>
             <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}"/>
         </addon>
+        <addon id="6">
+            <add key="Name" value="Arc DPS SCT (Scrolling Combat Text)"/>
+            <add key="DownloadURL" value="'https://github.com'+((((Invoke-WebRequest https://github.com/Artenuvielle/GW2-SCT/releases/latest/ -UseBasicParsing).content | select-string -pattern '(\/Artenuvielle.*d3d9_arcdps_sct\.dll)' -AllMatches).matches[0].groups[1].value))"  type="ScriptBlock"/>
+            <add key="UpstreamVersion" value='("{{DownloadURL}}" | sls -pattern "download\/(.*)\/d3d9" -allmatches).Matches.Groups[1].value' type="ScriptBlock"/>
+            <add key="DownloadTo" value="{{GW2Dir}}bin64\d3d9_arcdps_sct.dll"/>
+            <add key="RequiresAppClosed" value="{{GW2Exec}}"/>
+            <add key="RequiresAddon" value="4"/>
+            <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}"/>
+        </addon>
     </addons>
 </xml>
 '@
