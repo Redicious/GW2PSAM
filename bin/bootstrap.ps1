@@ -30,19 +30,19 @@ if(!$IgnoreRemoteUpdate)
     }
 
     $VersionRemote = (GetVersion $RemoteBin)
-    write-debug "VersionRemote= $VersionRemote, VersionLocal=$VersionLocal"
+    write-debug "VersionRemote=""$VersionRemote"", VersionLocal=""$VersionLocal"""
     if($RemoteBin -in $null,'')
     {
         write-debug "couldn't retrieve remote information"
     }
-    elseif ($LocalBin -and ( $VersionRemote -eq $VersionLocal)) {
+    elseif (($LocalBin -or $exe) -and ( $VersionRemote -le $VersionLocal)) {
         
         write-debug "No remote Update, proceeding..."
     }
     else {
         if($exe)
         {
-            write-warning "there is an update available"
+            write-warning "there is an update ($VersionRemote) available"
             pause
         }
         else
