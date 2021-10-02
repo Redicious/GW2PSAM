@@ -12,7 +12,7 @@ If ($PSBoundParameters["Debug"]) {
     $DebugPreference = "Continue"
 }
 $Bootstrap = $false
-$Version = "1.4.0" #Major.Feature/Improvement.Bugfix
+$Version = "1.4.1" #Major.Feature/Improvement.Bugfix
 write-debug "Version = $Version"
 
 
@@ -326,8 +326,8 @@ $XMLVars = [XML]@'
             <!--add key="DownloadTo" value="{{AddonTemp}}{{AddonName}}\d3d9.dll"/-->
             <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}" cleanup="1"/>
             <Step level="2" action="unzip" from="{{DownloadTo}}" to="{{UnzipTo}}" cleanup="1"/>
-            <Step level="3" action="move" from="{{UnzipTo}}gw2radial\gw2addon_gw2radial.dll" to="{{GW2Dir}}bin64\d3d9_chainload.dll" IfIDs="4"/>
-            <Step level="3" action="move" from="{{UnzipTo}}gw2radial\gw2addon_gw2radial.dll" to="{{GW2Dir}}bin64\d3d9.dll" IfNotIDs="4"/>
+            <Step level="3" action="move" from="{{UnzipTo}}gw2addon_gw2radial.dll" to="{{GW2Dir}}bin64\d3d9_chainload.dll" IfIDs="4"/>
+            <Step level="3" action="move" from="{{UnzipTo}}gw2addon_gw2radial.dll" to="{{GW2Dir}}bin64\d3d9.dll" IfNotIDs="4"/>
             <!-- prep for probable future cleanup step level="4" action="cleanupoldstuff" from="{{GW2Dir}}bin64\d3d9.dll" IfIDs="4">
             <step level="4" action="cleanupoldstuff" from="{{GW2Dir}}bin64\d3d9_chainload.dll" IfNotIDs="4"-->
         </addon>
