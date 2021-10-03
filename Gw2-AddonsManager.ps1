@@ -12,7 +12,7 @@ If ($PSBoundParameters["Debug"]) {
     $DebugPreference = "Continue"
 }
 $Bootstrap = $false
-$Version = "1.4.2" #Major.Feature/Improvement.Bugfix
+$Version = "1.4.3" #Major.Feature/Improvement.Bugfix
 write-debug "Version = $Version"
 
 
@@ -372,6 +372,15 @@ $XMLVars = [XML]@'
             <add key="DownloadURL" value="'https://github.com'+((((Invoke-WebRequest https://github.com/Artenuvielle/GW2-SCT/releases/latest/ -UseBasicParsing).content | select-string -pattern '(\/Artenuvielle.*d3d9_arcdps_sct\.dll)' -AllMatches).matches[0].groups[1].value))"  type="ScriptBlock"/>
             <add key="UpstreamVersion" value='("{{DownloadURL}}" | sls -pattern "download\/(.*)\/d3d9" -allmatches).Matches.Groups[1].value' type="ScriptBlock"/>
             <add key="DownloadTo" value="{{GW2Dir}}bin64\d3d9_arcdps_sct.dll"/>
+            <add key="RequiresAppClosed" value="{{GW2Exec}}"/>
+            <add key="RequiresAddon" value="4"/>
+            <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}"/>
+        </addon>
+        <addon id="7">
+            <add key="Name" value="Arc DPS Boon Table"/>
+            <add key="DownloadURL" value="'https://github.com'+((((Invoke-WebRequest https://github.com/knoxfighter/GW2-ArcDPS-Boon-Table/releases/latest/ -UseBasicParsing).content | select-string -pattern '(\/knoxfighter.*d3d9_arcdps_table\.dll)' -AllMatches).matches[0].groups[1].value))"  type="ScriptBlock"/>
+            <add key="UpstreamVersion" value='("{{DownloadURL}}" | sls -pattern "download\/v(.*)\/d3d9" -allmatches).Matches.Groups[1].value' type="ScriptBlock"/>
+            <add key="DownloadTo" value="{{GW2Dir}}bin64\d3d9_arcdps_table.dll"/>
             <add key="RequiresAppClosed" value="{{GW2Exec}}"/>
             <add key="RequiresAddon" value="4"/>
             <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}"/>
