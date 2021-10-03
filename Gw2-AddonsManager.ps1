@@ -12,7 +12,7 @@ If ($PSBoundParameters["Debug"]) {
     $DebugPreference = "Continue"
 }
 $Bootstrap = $false
-$Version = "1.4.1" #Major.Feature/Improvement.Bugfix
+$Version = "1.4.2" #Major.Feature/Improvement.Bugfix
 write-debug "Version = $Version"
 
 
@@ -326,8 +326,8 @@ $XMLVars = [XML]@'
             <!--add key="DownloadTo" value="{{AddonTemp}}{{AddonName}}\d3d9.dll"/-->
             <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}" cleanup="1"/>
             <Step level="2" action="unzip" from="{{DownloadTo}}" to="{{UnzipTo}}" cleanup="1"/>
-            <Step level="3" action="move" from="{{UnzipTo}}gw2addon_gw2radial.dll" to="{{GW2Dir}}bin64\d3d9_chainload.dll" IfIDs="4"/>
-            <Step level="3" action="move" from="{{UnzipTo}}gw2addon_gw2radial.dll" to="{{GW2Dir}}bin64\d3d9.dll" IfNotIDs="4"/>
+            <Step level="3" action="move" from="{{UnzipTo}}gw2radial\gw2addon_gw2radial.dll" to="{{GW2Dir}}bin64\d3d9_chainload.dll" IfIDs="4"/>
+            <Step level="3" action="move" from="{{UnzipTo}}gw2radial\gw2addon_gw2radial.dll" to="{{GW2Dir}}bin64\d3d9.dll" IfNotIDs="4"/>
             <!-- prep for probable future cleanup step level="4" action="cleanupoldstuff" from="{{GW2Dir}}bin64\d3d9.dll" IfIDs="4">
             <step level="4" action="cleanupoldstuff" from="{{GW2Dir}}bin64\d3d9_chainload.dll" IfNotIDs="4"-->
         </addon>
@@ -892,7 +892,7 @@ function Set-Addon {
     }
     if(test-path $addontemp)
     {
-        Get-Item -path $AddonTemp | remove-item -Recurse -WhatIf
+        Get-Item -path $AddonTemp | remove-item -Recurse 
     }
     Save-MyAddon
 }
@@ -932,8 +932,8 @@ function DoAddonStep {
                         switch ($step.action) {
                             "download" { DownloadFile -from $Step.from -to $Step.to -ErrorAction stop }
                             "Unzip" { Expand-Archive -Path $step.from -DestinationPath $step.to -ErrorAction stop -force }
-                            "copy" { Copy-Item -path $Step.from -destination $Step.to -force -ErrorAction stop }
-                            "move" { move-Item -path $Step.from -destination $Step.to -force -ErrorAction stop }
+                            "copy" { get-item $step.from -ErrorAction stop | Copy-Item -destination $Step.to -force -ErrorAction stop }
+                            "move" { get-item $step.from -ErrorAction stop | move-Item -destination $Step.to -force -ErrorAction stop }
                             default { Throw "Internal Error: unknown action type $($Step.action)" }
                         }
                         $done = $true

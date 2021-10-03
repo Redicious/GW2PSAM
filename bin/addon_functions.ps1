@@ -73,7 +73,7 @@ function Set-Addon {
     }
     if(test-path $addontemp)
     {
-        Get-Item -path $AddonTemp | remove-item -Recurse -WhatIf
+        Get-Item -path $AddonTemp | remove-item -Recurse 
     }
     Save-MyAddon
 }
@@ -113,8 +113,8 @@ function DoAddonStep {
                         switch ($step.action) {
                             "download" { DownloadFile -from $Step.from -to $Step.to -ErrorAction stop }
                             "Unzip" { Expand-Archive -Path $step.from -DestinationPath $step.to -ErrorAction stop -force }
-                            "copy" { Copy-Item -path $Step.from -destination $Step.to -force -ErrorAction stop }
-                            "move" { move-Item -path $Step.from -destination $Step.to -force -ErrorAction stop }
+                            "copy" { get-item $step.from -ErrorAction stop | Copy-Item -destination $Step.to -force -ErrorAction stop }
+                            "move" { get-item $step.from -ErrorAction stop | move-Item -destination $Step.to -force -ErrorAction stop }
                             default { Throw "Internal Error: unknown action type $($Step.action)" }
                         }
                         $done = $true
