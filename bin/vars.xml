@@ -89,5 +89,14 @@
             <add key="RequiresAddon" value="4"/>
             <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}"/>
         </addon>
+        <addon id="8">
+            <add key="Name" value="Arc DPS Healing Stats"/>
+            <add key="DownloadURL" value="'https://github.com'+((((Invoke-WebRequest https://github.com/Krappa322/arcdps_healing_stats/releases/latest/ -UseBasicParsing).content | select-string -pattern '(\/Krappa322.*arcdps_healing_stats\.dll)' -AllMatches).matches[0].groups[1].value))"  type="ScriptBlock"/>
+            <add key="UpstreamVersion" value='("{{DownloadURL}}" | sls -pattern "download\/v(.*)\/arcdps_healing_stats" -allmatches).Matches.Groups[1].value' type="ScriptBlock"/>
+            <add key="DownloadTo" value="{{GW2Dir}}bin64\arcdps_healing_stats.dll"/>
+            <add key="RequiresAppClosed" value="{{GW2Exec}}"/>
+            <add key="RequiresAddon" value="4"/>
+            <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}"/>
+        </addon>
     </addons>
 </xml>
