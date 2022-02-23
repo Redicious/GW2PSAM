@@ -23,6 +23,9 @@ function ParseNodeValue ( $Node, [string]$AddonID ) {
         elseif ($Node.type -eq "WebHeaderLastModified") {
             (Invoke-WebRequest $Val -method HEAD -UseBasicParsing).Headers."Last-Modified"
         }
+        elseif ($Node.type -eq "WebHeaderLength") {
+            (Invoke-WebRequest $Val -method HEAD -UseBasicParsing).Headers."Content-Length"
+        }
         else {
             $Val
         }

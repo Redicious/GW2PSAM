@@ -12,7 +12,7 @@ If ($PSBoundParameters["Debug"]) {
     $DebugPreference = "Continue"
 }
 $Bootstrap = $false
-$Version = "1.4.4" #Major.Feature/Improvement.Bugfix
+$Version = "1.4.6" #Major.Feature/Improvement.Bugfix
 write-debug "Version = $Version"
 
 
@@ -304,9 +304,15 @@ $XMLVars = [XML]@'
     <add key="MyAddonsFile" value='{{AppData}}MyAddons.JSON'/>
     <add key="LocalBinPath" value="{{AddonTemp}}Gw2-AddonsManager.ps1"/>
     
+    <!-- TacO stuff --> 
     <add key="TacODir" value='{{GW2Dir}}TacO\'/><!-- will be configurable.. at some point -->
-    <add key="TacOExec" value='{{TacODir}}GW2TacO.exe'/> 
-    <!--add key="CleanupTempDir" value="{{true}}"/-->
+    <add key="TacOExec" value='{{TacODir}}GW2TacO.exe'/>
+
+    <!-- Blish-HUD stuff --> 
+    <add key="BlishDir" value='{{GW2Dir}}Blish-HUD\'/><!-- will be configurable.. at some point -->
+    <add key="BlishExec" value='{{BlishDir}}Blish HUD.exe'/>
+    <add key="BlishUDir" value ="([Environment]::GetFolderPath('MyDocuments'))+'\Guild Wars 2\addons\blishhud\'" type ="ScriptBlock"/>
+    
     <addons>
     <!-- 
         This part describes the addons
@@ -323,13 +329,10 @@ $XMLVars = [XML]@'
             <add key="RequiresAppClosed" value="{{GW2Exec}}"/>
             <add key="DownloadTo" value="{{AddonTemp}}{{AddonName}}\GW2Radial.zip"/>
             <add key="UnzipTo" value="{{AddonTemp}}{{AddonName}}_Unzip\"/>
-            <!--add key="DownloadTo" value="{{AddonTemp}}{{AddonName}}\d3d9.dll"/-->
             <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}" cleanup="1"/>
             <Step level="2" action="unzip" from="{{DownloadTo}}" to="{{UnzipTo}}" cleanup="1"/>
             <Step level="3" action="move" from="{{UnzipTo}}gw2radial\gw2addon_gw2radial.dll" to="{{GW2Dir}}bin64\d3d9_chainload.dll" IfIDs="4"/>
             <Step level="3" action="move" from="{{UnzipTo}}gw2radial\gw2addon_gw2radial.dll" to="{{GW2Dir}}bin64\d3d9.dll" IfNotIDs="4"/>
-            <!-- prep for probable future cleanup step level="4" action="cleanupoldstuff" from="{{GW2Dir}}bin64\d3d9.dll" IfIDs="4">
-            <step level="4" action="cleanupoldstuff" from="{{GW2Dir}}bin64\d3d9_chainload.dll" IfNotIDs="4"-->
         </addon>
         <addon id="2">
             <add key="Name" value="TacO"/>
@@ -394,6 +397,56 @@ $XMLVars = [XML]@'
             <add key="RequiresAddon" value="4"/>
             <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}"/>
         </addon>
+        <addon id="10">
+            <add key="Name" value="Blish-HUD"/>
+            <add key="DownloadURL" value="'https://github.com'+((((Invoke-WebRequest https://github.com/blish-hud/Blish-HUD/releases/latest/ -UseBasicParsing).content | select-string -pattern '(\/blish-hud.*Blish\.HUD.*.zip)' -AllMatches).matches[0].groups[1].value))"  type="ScriptBlock"/>
+            <add key="UpstreamVersion" value='("{{DownloadURL}}" | sls -pattern "download\/v(.*)\/Blish\.HUD\." -allmatches).Matches.Groups[1].value' type="ScriptBlock"/>
+            <add key="DownloadTo" value="'{{AddonTemp}}{{AddonName}}\'+('{{DownloadURL}}' | split-path -Leaf)" type="ScriptBlock"/>
+            <add key="RequiresAppClosed" value="{{GW2Exec}}"/>
+            <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}" cleanup="1"/>
+            <Step level="2" action="Unzip" from="{{DownloadTo}}" to="{{BlishDir}}"/>
+        </addon>
+        <addon id="11">
+            <add key="Name" value="Blish-HUD Tekkit Poi"/>
+            <add key="DownloadURL" value="http://tekkitsworkshop.net/index.php/gw2-taco/download/send/2-taco-marker-packs/32-all-in-one"/>
+            <add key="UpstreamVersion" value='{{DownloadURL}}' type="WebHeaderLastModified"/>
+            <add key="DownloadTo" value="{{BlishUDir}}markers\tw_ALL_IN_ONE.taco"/>
+            <add key="RequiresAppClosed" value="{{BlishExec}}"/>
+            <add key="RequiresAddon" value="10"/>
+            <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}"/>
+        </addon>
+        <addon id="12">
+            <add key="Name" value="Blish-HUD Hero Markers"/>
+            <add key="GitHubU" value="QuitarHero"/>
+            <add key="GitHubR" value="Heros-Marker-Pack"/>
+            <add key="DownloadURL" value="'https://github.com'+((((Invoke-WebRequest https://github.com/{{GitHubU}}/{{GitHubR}}/releases/latest/ -UseBasicParsing).content | select-string -pattern '(\/{{GitHubU}}\/.*\.zip)' -AllMatches).matches[0].groups[1].value))"  type="ScriptBlock"/>
+            <add key="UpstreamVersion" value='("{{DownloadURL}}" | sls -pattern "download\/v(.*)\/.*.zip" -allmatches).Matches.Groups[1].value' type="ScriptBlock"/>
+            <add key="DownloadTo" value="'{{AddonTemp}}{{AddonName}}\'+('{{DownloadURL}}' | split-path -Leaf)" type="ScriptBlock"/>
+            <add key="RequiresAppClosed" value="{{BlishExec}}"/>
+            <add key="RequiresAddon" value="10"/>
+            <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}" cleanup="1"/>
+            <Step level="2" action="Unzip" from="{{DownloadTo}}" to="{{BlishUDir}}markers\{{Name}}\"/>
+        </addon>
+        <addon id="13">
+            <add key="Name" value="Blish-HUD Reactif Markers"/>
+            <add key="DownloadURL" value="https://www.heinze.fr/taco/download.php?f=3"/>
+            <add key="UpstreamVersion" value='{{DownloadURL}}' type="WebHeaderLength"/>
+            <add key="DownloadTo" value="{{BlishUDir}}markers\GW2 TacO ReActif EN External.taco"/>
+            <add key="RequiresAppClosed" value="{{BlishExec}}"/>
+            <add key="RequiresAddon" value="10"/>
+            <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}"/>
+        </addon>
+        <addon id="14">
+            <add key="Name" value="Blish-HUD Tehs HP Trails"/>
+            <add key="GitHubU" value="xrandox"/>
+            <add key="GitHubR" value="TehsTrails"/>
+            <add key="DownloadURL" value="'https://github.com'+((((Invoke-WebRequest https://github.com/{{GitHubU}}/{{GitHubR}}/releases/latest/ -UseBasicParsing).content | select-string -pattern '(\/{{GitHubU}}\/.*\.taco)' -AllMatches).matches[0].groups[1].value))"  type="ScriptBlock"/>
+            <add key="UpstreamVersion" value='("{{DownloadURL}}" | sls -pattern "download\/v(.*)\/.*.taco" -allmatches).Matches.Groups[1].value' type="ScriptBlock"/>
+            <add key="DownloadTo" value="'{{BlishUDir}}markers\'+('{{DownloadURL}}' | split-path -Leaf)" type="ScriptBlock"/>
+            <add key="RequiresAppClosed" value="{{BlishExec}}"/>
+            <add key="RequiresAddon" value="10"/>
+            <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}" />
+        </addon>
     </addons>
 </xml>
 '@
@@ -408,7 +461,7 @@ function Get-MyAddon {
     if ($null -eq (get-variable -name MyAddons -scope script -ErrorAction SilentlyContinue)) {
         if (test-path -path $MyAddonsFile) {
             write-debug "local setting file exists, reading..."
-            $script:MyAddons = (get-content -path $MyAddonsFile -ErrorAction stop) | ConvertFrom-Json
+            $script:MyAddons = (get-content -path $MyAddonsFile -ErrorAction stop) | ConvertFrom-Json 
             foreach ($MyAddon in $MyAddons) {
                 Update-MyAddon -id $MyAddon 
             }
@@ -582,6 +635,9 @@ function ParseNodeValue ( $Node, [string]$AddonID ) {
         elseif ($Node.type -eq "WebHeaderLastModified") {
             (Invoke-WebRequest $Val -method HEAD -UseBasicParsing).Headers."Last-Modified"
         }
+        elseif ($Node.type -eq "WebHeaderLength") {
+            (Invoke-WebRequest $Val -method HEAD -UseBasicParsing).Headers."Content-Length"
+        }
         else {
             $Val
         }
@@ -721,6 +777,19 @@ function Invoke-Menu {
             )  | % { $Actions += $_ }
         }
 
+        if (($JA | ? { $_.id -eq 10 }).InstalledVersion -notin '', $null) {
+            @(
+                [PSCustomObject]@{ ID = "B"; Text = "Run Blish Hud"; Function = "Invoke-BlishHud"; EXE=$true  },
+                [PSCustomObject]@{ ID = "BR"; Text = "Run Blish Hud & GW2"; Function = "Invoke-BlishHud; Invoke-GW2"; EXE=$true  }
+            )  | % { $Actions += $_ }
+        }
+        else {
+            @(
+                [PSCustomObject]@{ ID = "-"; Text = "Run Blish Hud (Not installed)"; Function = ""; EXE=$true  },
+                [PSCustomObject]@{ ID = "-"; Text = "Run Blish Hud (Not installed) & GW2"; Function = ""; EXE=$true  }
+            )  | % { $Actions += $_ }
+        }
+
         @(
             [PSCustomObject]@{ ID = "A"; Text = "Update/Install/Uninstall + Run GW2 + Quit (like ""-auto"" parameter, ""H"" for more info)"; Function = "Invoke-AutomaticStart"; EXE=$true },
             [PSCustomObject]@{ ID = "R"; Text = "Run GW2"; Function = "Invoke-GW2"; EXE=$true  },
@@ -786,11 +855,11 @@ function Invoke-Menu {
 }
 
 function Invoke-AutomaticStart {
-    Set-Addon  
+    Set-Addon
+    Invoke-GW2
     if (((Get-MyAddonsJoined -UpdateMeta) | ? { $_.id -eq 2 }).InstalledVersion -notin '', $null) {
         Invoke-Taco 
     }
-    Invoke-GW2
 }
 
 function Invoke-TacO {
@@ -810,6 +879,27 @@ function Invoke-TacO {
         if((-not (get-process | Where-Object { $_.path -eq $TacOExec })))
         {
             Start-Process -FilePath $TacOExec -WorkingDirectory $TacoDir
+        }
+    }
+}
+
+function Invoke-BlishHud {
+    write-host "starting Blish Hud $BlishExec"
+    if (get-process | Where-Object { $_.path -eq $BlishExec }) {
+        Write-Warning "Blish Hud already running!"
+    }
+    else {
+        Start-Process -FilePath $BlishExec -WorkingDirectory $TacoDir
+
+        #Sometimes it does not start...WHY!??! Just wait a few seconds and then try again. 
+        $startTime = get-date   
+        while((-not (get-process | Where-Object { $_.path -eq $BlishExec })) -and (new-timespan -start $startTime).Seconds -le 10)
+        {
+            start-sleep -seconds 1
+        } 
+        if((-not (get-process | Where-Object { $_.path -eq $BlishExec })))
+        {
+            Start-Process -FilePath $BlishExec -WorkingDirectory $TacoDir
         }
     }
 }
@@ -1041,7 +1131,8 @@ function UnDoAddonStep {
 function DownloadFile {
     param (
         [ValidateNotNullOrEmpty()][string] $from,
-        [ValidateNotNullOrEmpty()][string] $to
+        [ValidateNotNullOrEmpty()][string] $to,
+        [switch]$Stream
     )
     if(!(test-path (split-path $to)))
     {

@@ -204,7 +204,8 @@ function UnDoAddonStep {
 function DownloadFile {
     param (
         [ValidateNotNullOrEmpty()][string] $from,
-        [ValidateNotNullOrEmpty()][string] $to
+        [ValidateNotNullOrEmpty()][string] $to,
+        [switch]$Stream
     )
     if(!(test-path (split-path $to)))
     {

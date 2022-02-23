@@ -58,6 +58,19 @@ function Invoke-Menu {
             )  | % { $Actions += $_ }
         }
 
+        if (($JA | ? { $_.id -eq 10 }).InstalledVersion -notin '', $null) {
+            @(
+                [PSCustomObject]@{ ID = "B"; Text = "Run Blish Hud"; Function = "Invoke-BlishHud"; EXE=$true  },
+                [PSCustomObject]@{ ID = "BR"; Text = "Run Blish Hud & GW2"; Function = "Invoke-BlishHud; Invoke-GW2"; EXE=$true  }
+            )  | % { $Actions += $_ }
+        }
+        else {
+            @(
+                [PSCustomObject]@{ ID = "-"; Text = "Run Blish Hud (Not installed)"; Function = ""; EXE=$true  },
+                [PSCustomObject]@{ ID = "-"; Text = "Run Blish Hud (Not installed) & GW2"; Function = ""; EXE=$true  }
+            )  | % { $Actions += $_ }
+        }
+
         @(
             [PSCustomObject]@{ ID = "A"; Text = "Update/Install/Uninstall + Run GW2 + Quit (like ""-auto"" parameter, ""H"" for more info)"; Function = "Invoke-AutomaticStart"; EXE=$true },
             [PSCustomObject]@{ ID = "R"; Text = "Run GW2"; Function = "Invoke-GW2"; EXE=$true  },
@@ -123,11 +136,11 @@ function Invoke-Menu {
 }
 
 function Invoke-AutomaticStart {
-    Set-Addon  
+    Set-Addon
+    Invoke-GW2
     if (((Get-MyAddonsJoined -UpdateMeta) | ? { $_.id -eq 2 }).InstalledVersion -notin '', $null) {
         Invoke-Taco 
     }
-    Invoke-GW2
 }
 
 function Invoke-TacO {
@@ -147,6 +160,27 @@ function Invoke-TacO {
         if((-not (get-process | Where-Object { $_.path -eq $TacOExec })))
         {
             Start-Process -FilePath $TacOExec -WorkingDirectory $TacoDir
+        }
+    }
+}
+
+function Invoke-BlishHud {
+    write-host "starting Blish Hud $BlishExec"
+    if (get-process | Where-Object { $_.path -eq $BlishExec }) {
+        Write-Warning "Blish Hud already running!"
+    }
+    else {
+        Start-Process -FilePath $BlishExec -WorkingDirectory $TacoDir
+
+        #Sometimes it does not start...WHY!??! Just wait a few seconds and then try again. 
+        $startTime = get-date   
+        while((-not (get-process | Where-Object { $_.path -eq $BlishExec })) -and (new-timespan -start $startTime).Seconds -le 10)
+        {
+            start-sleep -seconds 1
+        } 
+        if((-not (get-process | Where-Object { $_.path -eq $BlishExec })))
+        {
+            Start-Process -FilePath $BlishExec -WorkingDirectory $TacoDir
         }
     }
 }
