@@ -12,7 +12,7 @@ If ($PSBoundParameters["Debug"]) {
     $DebugPreference = "Continue"
 }
 $Bootstrap = $false
-$Version = "1.4.6" #Major.Feature/Improvement.Bugfix
+$Version = "1.4.7" #Major.Feature/Improvement.Bugfix
 write-debug "Version = $Version"
 
 
@@ -322,8 +322,8 @@ $XMLVars = [XML]@'
         Don't mess with it
     -->        
         <addon id="1">
-            <add key="Name" value="Radial Mount"/>
-            <add key="DownloadURL" value='("https://github.com" + (((Invoke-WebRequest https://github.com/Friendly0Fire/GW2Radial/releases/latest -UseBasicParsing).content -split "`r`n" | select-string -pattern "`"\/.*GW2Radial\.zip`"" -AllMatches).matches.groups[0].value -replace """"));' type="ScriptBlock"/>
+            <add key="Name" value="Radial Mount DX9 (outdated)"/>
+            <add key="DownloadURL" value='("https://github.com" + (((Invoke-WebRequest https://github.com/Friendly0Fire/GW2Radial/releases/tag/v2.1.3 -UseBasicParsing).content -split "`r`n" | select-string -pattern "`"\/.*GW2Radial\.zip`"" -AllMatches).matches.groups[0].value -replace """"));' type="ScriptBlock"/>
             <add key="UpstreamVersion" value='("{{DownloadURL}}" | sls -pattern "download/(.*)/GW2Radial.zip" -allmatches).Matches.Groups[1].value' type="ScriptBlock"/>
             <add key="Website" value="https://github.com/Friendly0Fire/GW2Radial"/>
             <add key="RequiresAppClosed" value="{{GW2Exec}}"/>
