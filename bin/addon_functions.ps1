@@ -110,6 +110,13 @@ function DoAddonStep {
                     start-sleep -seconds ($ErrCount * 2)
                     try {
                         write-host "executing step action=$($step.action) level=$Level for addon $($addon.name)..." -ForegroundColor $ForegroundcolorStatusInformation
+
+                        $parentTo = split-path $step.to
+                        if(!(test-path $parentTo))
+                        {
+                            new-item -type directory -path $parentTo -force -ErrorAction stop
+                        }
+
                         switch ($step.action) {
                             "download" { DownloadFile -from $Step.from -to $Step.to -ErrorAction stop }
                             "Unzip" { Expand-Archive -Path $step.from -DestinationPath $step.to -ErrorAction stop -force }
