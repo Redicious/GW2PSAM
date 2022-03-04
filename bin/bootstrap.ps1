@@ -35,7 +35,7 @@ if(!$IgnoreRemoteUpdate)
     {
         write-debug "couldn't retrieve remote information"
     }
-    elseif (($LocalBin -or $exe) -and ( $VersionRemote -le $VersionLocal)) {
+    elseif (($LocalBin -or $exe) -and ( [System.Version]$VersionRemote -le [System.Version]$VersionLocal)) {
         
         write-debug "No remote Update, proceeding..."
     }
