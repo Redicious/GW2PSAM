@@ -203,8 +203,8 @@
             <add key="Name" value="Arc DPS (dx11)"/>
             <add key="DownloadURL" value="https://www.deltaconnected.com/arcdps/x64/d3d9.dll"/>
             <add key="UpstreamVersion" value='{{DownloadURL}}' type="WebHeaderLastModified"/>
-            <add key="DownloadTo" value="{{ArcDPSAddons}}d3d9.dll"/>
-            <add key="RequiresAppClosed" value="{{GW2Exec}}gw2addon_arcdps.dll"/>
+            <add key="DownloadTo" value="{{ArcDPSAddons}}gw2addon_arcdps.dll"/>
+            <add key="RequiresAppClosed" value="{{GW2Exec}}"/>
             <add key="RequiresAddon" value="20"/>
             <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}"/>
         </addon>        

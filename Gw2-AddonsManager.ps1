@@ -12,7 +12,7 @@ If ($PSBoundParameters["Debug"]) {
     $DebugPreference = "Continue"
 }
 $Bootstrap = $false
-$Version = "1.5.0.1" #Major.Minor.Build.Revision
+$Version = "1.5.0.2" #Major.Minor.Build.Revision
 write-debug "Version = $Version"
 
 
@@ -499,8 +499,8 @@ $XMLVars = [XML]@'
             <add key="Name" value="Arc DPS (dx11)"/>
             <add key="DownloadURL" value="https://www.deltaconnected.com/arcdps/x64/d3d9.dll"/>
             <add key="UpstreamVersion" value='{{DownloadURL}}' type="WebHeaderLastModified"/>
-            <add key="DownloadTo" value="{{ArcDPSAddons}}d3d9.dll"/>
-            <add key="RequiresAppClosed" value="{{GW2Exec}}gw2addon_arcdps.dll"/>
+            <add key="DownloadTo" value="{{ArcDPSAddons}}gw2addon_arcdps.dll"/>
+            <add key="RequiresAppClosed" value="{{GW2Exec}}"/>
             <add key="RequiresAddon" value="20"/>
             <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}"/>
         </addon>        
