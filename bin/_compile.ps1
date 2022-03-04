@@ -1,4 +1,7 @@
-param($NoExe)
+param(
+    [switch]$NoExe,
+    [switch]$RunAfterCompilation    
+    )
 # for packaging executable files
 
 # push location, so pathing is easier
@@ -62,6 +65,12 @@ try {
         
         # compile the exe from the temp file
         Invoke-ps2exe $TempFile ..\Gw2-AddonsManager.exe
+    }
+
+    if($RunAfterCompilation)
+    {
+        ..\Gw2-AddonsManager.ps1
+        GW2AddonManager
     }
 }
 catch {

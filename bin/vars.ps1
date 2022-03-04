@@ -16,9 +16,17 @@ function ParseNodeValue ( $Node, [string]$AddonID ) {
         # }
 
         $Val = ParseValue -Value $Val -AddonID $AddonID
-
+        
         if ($Node.type -eq "ScriptBlock") {
-            Invoke-Expression "$Val"
+            try{
+                Invoke-Expression "$Val"
+            }
+            catch
+            {
+                write-error "Couldn't parse value $Val `r`nfrom Node:"
+                write-error $Node.outerxml
+                Throw $_
+            }
         }
         elseif ($Node.type -eq "WebHeaderLastModified") {
             (Invoke-WebRequest $Val -method HEAD -UseBasicParsing).Headers."Last-Modified"

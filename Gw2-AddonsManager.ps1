@@ -12,7 +12,7 @@ If ($PSBoundParameters["Debug"]) {
     $DebugPreference = "Continue"
 }
 $Bootstrap = $false
-$Version = "1.4.9" #Major.Feature/Improvement.Bugfix
+$Version = "1.4.10" #Major.Feature/Improvement.Bugfix
 write-debug "Version = $Version"
 
 
@@ -313,6 +313,9 @@ $XMLVars = [XML]@'
     <add key="BlishExec" value='{{BlishDir}}Blish HUD.exe'/>
     <add key="BlishUDir" value ="([Environment]::GetFolderPath('MyDocuments'))+'\Guild Wars 2\addons\blishhud\'" type ="ScriptBlock"/>
     
+    <!-- arcdps stuff -->
+    <add key="ArcDPSAddons" value="{{GW2Dir}}addons\arcdps\"/>
+
     <addons>
     <!-- 
         This part describes the addons
@@ -351,17 +354,16 @@ $XMLVars = [XML]@'
             <add key="RequiresAppClosed" value="{{TacOExec}}"/>
             <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}"/>
         </addon>
-        <addon id="4">
-            <add key="Name" value="Arc DPS"/>
+        <addon id="4">    
+            <add key="Name" value="Arc DPS (dx9)"/>
             <add key="DownloadURL" value="https://www.deltaconnected.com/arcdps/x64/d3d9.dll"/>
             <add key="UpstreamVersion" value='{{DownloadURL}}' type="WebHeaderLastModified"/>
             <add key="DownloadTo" value="{{GW2Dir}}bin64\d3d9.dll"/>
             <add key="RequiresAppClosed" value="{{GW2Exec}}"/>
-            <add key="ArcDPSAddons" value="{{GW2Dir}}addons\arcdps"/>
             <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}"/>
         </addon>
         <addon id="5">
-            <add key="Name" value="Arc DPS Killproof.me"/>
+            <add key="Name" value="Arc DPS Killproof.me (dx9)"/>
             <add key="DownloadURL" value="'https://github.com'+((((Invoke-WebRequest https://github.com/knoxfighter/arcdps-killproof.me-plugin/releases/latest/ -UseBasicParsing).content | select-string -pattern '(\/knoxfighter.*d3d9_arcdps_killproof_me\.dll)' -AllMatches).matches[0].groups[1].value))"  type="ScriptBlock"/>
             <add key="UpstreamVersion" value='("{{DownloadURL}}" | sls -pattern "download\/v(.*)\/d3d9" -allmatches).Matches.Groups[1].value' type="ScriptBlock"/>
             <add key="DownloadTo" value="{{GW2Dir}}bin64\d3d9_arcdps_killproof_me.dll"/>
@@ -370,7 +372,7 @@ $XMLVars = [XML]@'
             <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}"/>
         </addon>
         <addon id="6">
-            <add key="Name" value="Arc DPS SCT (Scrolling Combat Text)"/>
+            <add key="Name" value="Arc DPS SCT (Scrolling Combat Text) (dx9)"/>
             <add key="DownloadURL" value="'https://github.com'+((((Invoke-WebRequest https://github.com/Artenuvielle/GW2-SCT/releases/latest/ -UseBasicParsing).content | select-string -pattern '(\/Artenuvielle.*d3d9_arcdps_sct\.dll)' -AllMatches).matches[0].groups[1].value))"  type="ScriptBlock"/>
             <add key="UpstreamVersion" value='("{{DownloadURL}}" | sls -pattern "download\/(.*)\/d3d9" -allmatches).Matches.Groups[1].value' type="ScriptBlock"/>
             <add key="DownloadTo" value="{{GW2Dir}}bin64\d3d9_arcdps_sct.dll"/>
@@ -379,7 +381,7 @@ $XMLVars = [XML]@'
             <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}"/>
         </addon>
         <addon id="7">
-            <add key="Name" value="Arc DPS Boon Table"/>
+            <add key="Name" value="Arc DPS Boon Table (dx9)"/>
             <add key="DownloadURL" value="'https://github.com'+((((Invoke-WebRequest https://github.com/knoxfighter/GW2-ArcDPS-Boon-Table/releases/latest/ -UseBasicParsing).content | select-string -pattern '(\/knoxfighter.*d3d9_arcdps_table\.dll)' -AllMatches).matches[0].groups[1].value))"  type="ScriptBlock"/>
             <add key="UpstreamVersion" value='("{{DownloadURL}}" | sls -pattern "download\/v(.*)\/d3d9" -allmatches).Matches.Groups[1].value' type="ScriptBlock"/>
             <add key="DownloadTo" value="{{GW2Dir}}bin64\d3d9_arcdps_table.dll"/>
@@ -388,7 +390,7 @@ $XMLVars = [XML]@'
             <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}"/>
         </addon>
         <addon id="8">
-            <add key="Name" value="Arc DPS Healing Stats"/>
+            <add key="Name" value="Arc DPS Healing Stats (dx9)"/>
             <add key="DownloadURL" value="'https://github.com'+((((Invoke-WebRequest https://github.com/Krappa322/arcdps_healing_stats/releases/latest/ -UseBasicParsing).content | select-string -pattern '(\/Krappa322.*arcdps_healing_stats\.dll)' -AllMatches).matches[0].groups[1].value))"  type="ScriptBlock"/>
             <add key="UpstreamVersion" value='("{{DownloadURL}}" | sls -pattern "download\/v(.*)\/arcdps_healing_stats" -allmatches).Matches.Groups[1].value' type="ScriptBlock"/>
             <add key="DownloadTo" value="{{GW2Dir}}bin64\arcdps_healing_stats.dll"/>
@@ -455,7 +457,6 @@ $XMLVars = [XML]@'
             <add key="DownloadTo" value="'{{AddonTemp}}{{AddonName}}\'+('{{DownloadURL}}' | split-path -Leaf)" type="ScriptBlock"/>
             <add key="UnzipTo" value="'{{AddonTemp}}{{AddonName}}_Unzip\'" type="ScriptBlock"/>
             <add key="RequiresAppClosed" value="{{GW2Exec}}"/>
-            <add key="RequiresAddon" value="10"/>
             <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}" cleanup="1" />
             <Step level="2" action="Unzip" from="{{DownloadTo}}" to="{{UnzipTo}}" cleanup="1"/>
             <Step level="3" action="move" from="{{UnzipTo}}addonLoader.dll" to="{{GW2Dir}}addonLoader.dll"/>
@@ -486,7 +487,6 @@ $XMLVars = [XML]@'
             <add key="GitHubR" value="GW2Radial"/>
             <add key="DownloadURL" value='("https://github.com" + (((Invoke-WebRequest https://github.com/{{GitHubU}}/{{GitHubR}}/releases/latest/ -UseBasicParsing).content -split "`r`n" | select-string -pattern "`"\/.*GW2Radial\.zip`"" -AllMatches).matches.groups[0].value -replace """"));' type="ScriptBlock"/>
             <add key="UpstreamVersion" value='("{{DownloadURL}}" | sls -pattern "download/v(.*)/GW2Radial.zip" -allmatches).Matches.Groups[1].value' type="ScriptBlock"/>
-            <add key="Website" value="https://github.com/Friendly0Fire/GW2Radial"/>
             <add key="RequiresAppClosed" value="{{GW2Exec}}"/>
             <add key="RequiresAddon" value="21"/>
             <add key="DownloadTo" value="{{AddonTemp}}{{AddonName}}\GW2Radial.zip"/>
@@ -494,6 +494,59 @@ $XMLVars = [XML]@'
             <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}" cleanup="1"/>
             <Step level="2" action="unzip" from="{{DownloadTo}}" to="{{UnzipTo}}" cleanup="1"/>
             <Step level="3" action="move" from="{{UnzipTo}}\{{GitHubR}}\gw2addon_gw2radial.dll" to="{{GW2Dir}}\addons\{{GitHubR}}\gw2addon_gw2radial.dll"/>
+        </addon>
+        <addon id="40">    
+            <add key="Name" value="Arc DPS (dx11)"/>
+            <add key="DownloadURL" value="https://www.deltaconnected.com/arcdps/x64/d3d9.dll"/>
+            <add key="UpstreamVersion" value='{{DownloadURL}}' type="WebHeaderLastModified"/>
+            <add key="DownloadTo" value="{{ArcDPSAddons}}d3d9.dll"/>
+            <add key="RequiresAppClosed" value="{{GW2Exec}}gw2addon_arcdps.dll"/>
+            <add key="RequiresAddon" value="20"/>
+            <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}"/>
+        </addon>        
+        <addon id="41">
+            <add key="Name" value="Arc DPS Killproof.me (dx11)"/>
+            <add key="GitHubU" value="knoxfighter"/>
+            <add key="GitHubR" value="arcdps-killproof.me-plugin"/>
+            <add key="DownloadURL" value="'https://github.com'+((((Invoke-WebRequest https://github.com/{{GitHubU}}/{{GitHubR}}/releases/latest/ -UseBasicParsing).content | select-string -pattern '(\/{{GitHubU}}.*d3d9_arcdps_killproof_me\.dll)' -AllMatches).matches[0].groups[1].value))"  type="ScriptBlock"/>
+            <add key="UpstreamVersion" value='("{{DownloadURL}}" | sls -pattern "download\/v(.*)\/d3d9" -allmatches).Matches.Groups[1].value' type="ScriptBlock"/>
+            <add key="DownloadTo" value="{{ArcDPSAddons}}d3d9_arcdps_killproof_me.dll"/>
+            <add key="RequiresAppClosed" value="{{GW2Exec}}"/>
+            <add key="RequiresAddon" value="40"/>
+            <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}"/>
+        </addon>
+        <addon id="42">
+            <add key="Name" value="Arc DPS SCT (Scrolling Combat Text) (dx11)"/>
+            <add key="GitHubU" value="Artenuvielle"/>
+            <add key="GitHubR" value="GW2-SCT"/>
+            <add key="DownloadURL" value="'https://github.com'+((((Invoke-WebRequest https://github.com/{{GitHubU}}/{{GitHubR}}/releases/latest/ -UseBasicParsing).content | select-string -pattern '(\/{{GitHubU}}.*d3d9_arcdps_sct\.dll)' -AllMatches).matches[0].groups[1].value))"  type="ScriptBlock"/>
+            <add key="UpstreamVersion" value='("{{DownloadURL}}" | sls -pattern "download\/(.*)\/d3d9" -allmatches).Matches.Groups[1].value' type="ScriptBlock"/>
+            <add key="DownloadTo" value="{{ArcDPSAddons}}d3d9_arcdps_sct.dll"/>
+            <add key="RequiresAppClosed" value="{{GW2Exec}}"/>
+            <add key="RequiresAddon" value="40"/>
+            <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}"/>
+        </addon>
+        <addon id="43">
+            <add key="Name" value="Arc DPS Boon Table (dx11)"/>
+            <add key="GitHubU" value="knoxfighter"/>
+            <add key="GitHubR" value="GW2-ArcDPS-Boon-Table"/>
+            <add key="DownloadURL" value="'https://github.com'+((((Invoke-WebRequest https://github.com/{{GitHubU}}/{{GitHubR}}/releases/latest/ -UseBasicParsing).content | select-string -pattern '(\/{{GitHubU}}.*d3d9_arcdps_table\.dll)' -AllMatches).matches[0].groups[1].value))"  type="ScriptBlock"/>
+            <add key="UpstreamVersion" value='("{{DownloadURL}}" | sls -pattern "download\/v(.*)\/d3d9" -allmatches).Matches.Groups[1].value' type="ScriptBlock"/>
+            <add key="DownloadTo" value="{{ArcDPSAddons}}d3d9_arcdps_table.dll"/>
+            <add key="RequiresAppClosed" value="{{GW2Exec}}"/>
+            <add key="RequiresAddon" value="40"/>
+            <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}"/>
+        </addon>
+        <addon id="44">
+            <add key="Name" value="Arc DPS Healing Stats (dx11)"/>
+            <add key="GitHubU" value="Krappa322"/>
+            <add key="GitHubR" value="arcdps_healing_stats"/>
+            <add key="DownloadURL" value="'https://github.com'+((((Invoke-WebRequest https://github.com/{{GitHubU}}/{{GitHubR}}/releases/latest/ -UseBasicParsing).content | select-string -pattern '(\/{{GitHubU}}.*arcdps_healing_stats\.dll)' -AllMatches).matches[0].groups[1].value))"  type="ScriptBlock"/>
+            <add key="UpstreamVersion" value='("{{DownloadURL}}" | sls -pattern "download\/v(.*)\/arcdps_healing_stats" -allmatches).Matches.Groups[1].value' type="ScriptBlock"/>
+            <add key="DownloadTo" value="{{ArcDPSAddons}}arcdps_healing_stats.dll"/>
+            <add key="RequiresAppClosed" value="{{GW2Exec}}"/>
+            <add key="RequiresAddon" value="40"/>
+            <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}"/>
         </addon>
     </addons>
 </xml>
@@ -676,9 +729,17 @@ function ParseNodeValue ( $Node, [string]$AddonID ) {
         # }
 
         $Val = ParseValue -Value $Val -AddonID $AddonID
-
+        
         if ($Node.type -eq "ScriptBlock") {
-            Invoke-Expression "$Val"
+            try{
+                Invoke-Expression "$Val"
+            }
+            catch
+            {
+                write-error "Couldn't parse value $Val `r`nfrom Node:"
+                write-error $Node.outerxml
+                Throw $_
+            }
         }
         elseif ($Node.type -eq "WebHeaderLastModified") {
             (Invoke-WebRequest $Val -method HEAD -UseBasicParsing).Headers."Last-Modified"
