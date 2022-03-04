@@ -12,7 +12,7 @@ If ($PSBoundParameters["Debug"]) {
     $DebugPreference = "Continue"
 }
 $Bootstrap = $false
-$Version = "1.4.10" #Major.Feature/Improvement.Bugfix
+$Version = "1.5.0.1" #Major.Minor.Build.Revision
 write-debug "Version = $Version"
 
 
@@ -54,7 +54,7 @@ if(!$IgnoreRemoteUpdate)
     {
         write-debug "couldn't retrieve remote information"
     }
-    elseif (($LocalBin -or $exe) -and ( $VersionRemote -le $VersionLocal)) {
+    elseif (($LocalBin -or $exe) -and ( [System.Version]$VersionRemote -le [System.Version]$VersionLocal)) {
         
         write-debug "No remote Update, proceeding..."
     }
