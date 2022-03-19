@@ -113,7 +113,17 @@ function Invoke-Menu {
         }
 
         $Options = $Actions.ID | where-object { $_ -notin $null, '-', '' } | Sort-Object -Unique
-        $Option = (ask -Quest "Enter your choice" -ValidOptions $Options -Delimiter ",")
+        if($null -ne $cmd)
+        {
+            $Option = $cmd -split ","  
+            write-host "Executing commands provided via parameter: $cmd"
+            $cmd = $null  
+        }
+        else 
+        {
+            $Option = (ask -Quest "Enter your choice" -ValidOptions $Options -Delimiter ",")    
+        }
+        
 
         foreach ($O in $Option) {
             if ($O -eq "Q") {
