@@ -14,7 +14,7 @@ If ($PSBoundParameters["Debug"]) {
     $DebugPreference = "Continue"
 }
 $Bootstrap = $false
-$Version = "1.6.0.1" #Major.Minor.Build.Revision
+$Version = "1.6.0.2" #Major.Minor.Build.Revision
 write-debug "Version = $Version"
 $UseParallel = ![bool]($NoParallelExec)
 
@@ -70,7 +70,7 @@ if(!$IgnoreRemoteUpdate)
         {
             if(test-path $LocalBinPath)
             {
-                write-warning "there is an update available, updating myself..."
+                write-warning "there is an update available, updating myself from $($VersionLocal) to $($VersionRemote)..."
                 #Compare-Object -ReferenceObject $RemoteBin -DifferenceObject $LocalBin
             }
             else {

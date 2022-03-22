@@ -49,7 +49,7 @@ if(!$IgnoreRemoteUpdate)
         {
             if(test-path $LocalBinPath)
             {
-                write-warning "there is an update available, updating myself..."
+                write-warning "there is an update available, updating myself from $($VersionLocal) to $($VersionRemote)..."
                 #Compare-Object -ReferenceObject $RemoteBin -DifferenceObject $LocalBin
             }
             else {
