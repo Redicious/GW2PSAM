@@ -14,6 +14,6 @@ If ($PSBoundParameters["Debug"]) {
     $DebugPreference = "Continue"
 }
 $Bootstrap = $false
-$Version = "1.6.0.0" #Major.Minor.Build.Revision
+$Version = "1.6.0.1" #Major.Minor.Build.Revision
 write-debug "Version = $Version"
 $UseParallel = ![bool]($NoParallelExec)

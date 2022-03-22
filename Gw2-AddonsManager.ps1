@@ -14,7 +14,7 @@ If ($PSBoundParameters["Debug"]) {
     $DebugPreference = "Continue"
 }
 $Bootstrap = $false
-$Version = "1.6.0.0" #Major.Minor.Build.Revision
+$Version = "1.6.0.1" #Major.Minor.Build.Revision
 write-debug "Version = $Version"
 $UseParallel = ![bool]($NoParallelExec)
 
@@ -341,8 +341,10 @@ $XMLVars = [XML]@'
         </addon>
         <addon id="2">
             <add key="Name" value="TacO"/>
-            <add key="DownloadURL" value="((((Invoke-WebRequest http://www.gw2taco.com/ -UseBasicParsing).content | select-string -pattern '(https:.*\.zip)' -AllMatches).matches[0].groups[1].value)+'?dl=1')"  type="ScriptBlock"/>
-            <add key="UpstreamVersion" value='("{{DownloadURL}}" | sls -pattern "GW2TacO_(.*)\.zip" -allmatches).Matches.Groups[1].value' type="ScriptBlock"/>
+            <add key="GitHubU" value="BoyC"/>
+            <add key="GitHubR" value="GW2TacO"/>
+            <add key="DownloadURL" value="'https://github.com'+((((Invoke-WebRequest https://github.com/{{GitHubU}}/{{GitHubR}}/releases/latest/ -UseBasicParsing).content | select-string -pattern '(\/{{GitHubU}}\/.*\.zip)' -AllMatches).matches[0].groups[1].value))"  type="ScriptBlock"/>
+            <add key="UpstreamVersion" value='("{{DownloadURL}}" | sls -pattern "download\/(.*)\/.*.zip" -allmatches).Matches.Groups[1].value' type="ScriptBlock"/>
             <add key="DownloadTo" value="{{AddonTemp}}{{AddonName}}\Taco.zip"/>
             <add key="RequiresAppClosed" value="{{TacOExec}}"/>
             <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}" cleanup="1"/>
