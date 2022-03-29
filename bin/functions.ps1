@@ -23,6 +23,8 @@ function Test-CrossContains {
     return $false    
 }
 
+
+
 function CreateAppdata {
     if (!(test-path $AppData)) {
         new-item -type Directory -path $appData -force | out-null
@@ -91,11 +93,11 @@ function ask {
         [Switch]$ValidateNotNullOrEmpty
     )
 
-    Write-Debug "ask( QUEST=$Quest | PRESELECT=$Preselect | VALIDOPTIONS=$($Validoptions -join ',') | DELIMITER=$DELIMITER | VALIDATENOTNULLOREMPTY=$ValidateNotNullOrEmpty"
+    mydebug "ask( QUEST=$Quest | PRESELECT=$Preselect | VALIDOPTIONS=$($Validoptions -join ',') | DELIMITER=$DELIMITER | VALIDATENOTNULLOREMPTY=$ValidateNotNullOrEmpty"
 
     if ($Delimiter) {
         $RXP = "^(" + ($ValidOptions -join '|') + ")" + "(" + $Delimiter + "(" + ($ValidOptions -join '|') + "))*$"
-        Write-Debug "Regular Expression for input validation: $RXP"
+        mydebug "Regular Expression for input validation: $RXP"
     }
 
     do {

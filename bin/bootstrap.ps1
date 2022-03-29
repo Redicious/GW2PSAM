@@ -7,16 +7,15 @@ if(!$IgnoreRemoteUpdate)
 
     
     $URL = "https://gitlab.deep-space-nomads.com/Redicious/guild-wars-2-addons-manager/-/raw/master/Gw2-AddonsManager.ps1"
-    write-debug "getting remote code from $url"
+    mydebug "getting remote code from $url"
     $RemoteBin = (Invoke-WebRequest -uri $URL -UseBasicParsing).Content
-    $AppDataPath = ($env:APPDATA) + "\GW2AddonsManager\"
-    $LocalBinPath = $AppDataPath + (Split-Path $URL -leaf)
+        $LocalBinPath = $AppDataPath + (Split-Path $URL -leaf)
     if($Exe)
     {
         $VersionLocal = $Version 
     }
     elseif (test-path $LocalBinPath) {
-        write-debug "local binary exists at $LocalBinPath , reading the file..."
+        mydebug "local binary exists at $LocalBinPath , reading the file..."
         $LocalBin = Get-Content $LocalBinPath -ErrorAction STOP -raw 
         $VersionLocal = (GetVersion $LocalBin)
     }
@@ -30,14 +29,14 @@ if(!$IgnoreRemoteUpdate)
     }
 
     $VersionRemote = (GetVersion $RemoteBin)
-    write-debug "VersionRemote=""$VersionRemote"", VersionLocal=""$VersionLocal"""
+    mydebug "VersionRemote=""$VersionRemote"", VersionLocal=""$VersionLocal"""
     if($RemoteBin -in $null,'')
     {
-        write-debug "couldn't retrieve remote information"
+        mydebug "couldn't retrieve remote information"
     }
     elseif (($LocalBin -or $exe) -and ( [System.Version]$VersionRemote -le [System.Version]$VersionLocal)) {
         
-        write-debug "No remote Update, proceeding..."
+        mydebug "No remote Update, proceeding..."
     }
     else {
         if($exe)
@@ -59,7 +58,7 @@ if(!$IgnoreRemoteUpdate)
             # Update local binary
             $RemoteBin | set-content -path $LocalBinPath -ErrorAction STOP
             
-            write-debug "Call myself, updated/installed..."
+            mydebug "Call myself, updated/installed..."
             Get-Content $LocalBinPath -ErrorAction STOP -raw | Invoke-Expression
             switch ($PsCmdlet.ParameterSetName) {
                 "None" { GW2AddonManager }
@@ -73,5 +72,5 @@ if(!$IgnoreRemoteUpdate)
     }
 }
 else {
-    write-debug "remote ignored"
+    mydebug "remote ignored"
 }

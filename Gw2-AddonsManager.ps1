@@ -10,14 +10,55 @@ Param(
     [Parameter(Mandatory = $false)][Switch] $NoParallelExec,
     [Parameter(Mandatory = $false)][Switch] $Exe
 )
+
 If ($PSBoundParameters["Debug"]) {
     $DebugPreference = "Continue"
 }
+
+$Version = "1.7.0.0" #Major.Minor.Build.Revision
+
+function mylog
+{
+    param([string]$msg)
+
+    $msg | out-file -filepath $LogPath -append
+}
+
+function mydebug 
+{
+    param([string]$msg)
+    write-debug $msg
+    mylog $msg    
+}
+
+# settings.ps1
+# Settings
+
+$AppDataPath = ($env:APPDATA) + "\GW2AddonsManager\"
+$TranscriptPath = $AppDataPath + "transcript.txt"
+$LogPath = $AppDataPath + "log.txt"
+
+if(test-path $LogPath)
+{
+    remove-item $LogPath -ErrorAction SilentlyContinue
+}
+try{
+    Stop-Transcript -ErrorAction SilentlyContinue | out-null
+}
+catch
+{
+
+}
+
+start-transcript -path $TranscriptPath | Out-Null
+
 $Bootstrap = $false
-$Version = "1.6.0.2" #Major.Minor.Build.Revision
-write-debug "Version = $Version"
+mydebug "Version = $Version"
 $UseParallel = ![bool]($NoParallelExec)
 
+$ForegroundcolorStatusInformation = "DarkGray"
+$MenuHeadColor = "Cyan"
+$MenuTextColor = "White"
 # bootstrap.ps1
 if(!$IgnoreRemoteUpdate)
 {
@@ -28,16 +69,15 @@ if(!$IgnoreRemoteUpdate)
 
     
     $URL = "https://gitlab.deep-space-nomads.com/Redicious/guild-wars-2-addons-manager/-/raw/master/Gw2-AddonsManager.ps1"
-    write-debug "getting remote code from $url"
+    mydebug "getting remote code from $url"
     $RemoteBin = (Invoke-WebRequest -uri $URL -UseBasicParsing).Content
-    $AppDataPath = ($env:APPDATA) + "\GW2AddonsManager\"
-    $LocalBinPath = $AppDataPath + (Split-Path $URL -leaf)
+        $LocalBinPath = $AppDataPath + (Split-Path $URL -leaf)
     if($Exe)
     {
         $VersionLocal = $Version 
     }
     elseif (test-path $LocalBinPath) {
-        write-debug "local binary exists at $LocalBinPath , reading the file..."
+        mydebug "local binary exists at $LocalBinPath , reading the file..."
         $LocalBin = Get-Content $LocalBinPath -ErrorAction STOP -raw 
         $VersionLocal = (GetVersion $LocalBin)
     }
@@ -51,14 +91,14 @@ if(!$IgnoreRemoteUpdate)
     }
 
     $VersionRemote = (GetVersion $RemoteBin)
-    write-debug "VersionRemote=""$VersionRemote"", VersionLocal=""$VersionLocal"""
+    mydebug "VersionRemote=""$VersionRemote"", VersionLocal=""$VersionLocal"""
     if($RemoteBin -in $null,'')
     {
-        write-debug "couldn't retrieve remote information"
+        mydebug "couldn't retrieve remote information"
     }
     elseif (($LocalBin -or $exe) -and ( [System.Version]$VersionRemote -le [System.Version]$VersionLocal)) {
         
-        write-debug "No remote Update, proceeding..."
+        mydebug "No remote Update, proceeding..."
     }
     else {
         if($exe)
@@ -80,7 +120,7 @@ if(!$IgnoreRemoteUpdate)
             # Update local binary
             $RemoteBin | set-content -path $LocalBinPath -ErrorAction STOP
             
-            write-debug "Call myself, updated/installed..."
+            mydebug "Call myself, updated/installed..."
             Get-Content $LocalBinPath -ErrorAction STOP -raw | Invoke-Expression
             switch ($PsCmdlet.ParameterSetName) {
                 "None" { GW2AddonManager }
@@ -94,7 +134,7 @@ if(!$IgnoreRemoteUpdate)
     }
 }
 else {
-    write-debug "remote ignored"
+    mydebug "remote ignored"
 }
 
 # help.ps1
@@ -189,6 +229,8 @@ function Test-CrossContains {
     return $false    
 }
 
+
+
 function CreateAppdata {
     if (!(test-path $AppData)) {
         new-item -type Directory -path $appData -force | out-null
@@ -257,11 +299,11 @@ function ask {
         [Switch]$ValidateNotNullOrEmpty
     )
 
-    Write-Debug "ask( QUEST=$Quest | PRESELECT=$Preselect | VALIDOPTIONS=$($Validoptions -join ',') | DELIMITER=$DELIMITER | VALIDATENOTNULLOREMPTY=$ValidateNotNullOrEmpty"
+    mydebug "ask( QUEST=$Quest | PRESELECT=$Preselect | VALIDOPTIONS=$($Validoptions -join ',') | DELIMITER=$DELIMITER | VALIDATENOTNULLOREMPTY=$ValidateNotNullOrEmpty"
 
     if ($Delimiter) {
         $RXP = "^(" + ($ValidOptions -join '|') + ")" + "(" + $Delimiter + "(" + ($ValidOptions -join '|') + "))*$"
-        Write-Debug "Regular Expression for input validation: $RXP"
+        mydebug "Regular Expression for input validation: $RXP"
     }
 
     do {
@@ -289,11 +331,6 @@ function ask {
         }           
     } While (1) # yeah, bad style. Judge me
 }
-# settings.ps1
-# Settings
-$ForegroundcolorStatusInformation = "DarkGray"
-$MenuHeadColor = "Cyan"
-$MenuTextColor = "White"
 # vars.xml
 $XMLVars = [XML]@'
 <xml>
@@ -565,14 +602,14 @@ function Get-MyAddon {
     CreateAppdata
     if ($null -eq (get-variable -name MyAddons -scope script -ErrorAction SilentlyContinue)) {
         if (test-path -path $MyAddonsFile) {
-            write-debug "local setting file exists, reading..."
+            mydebug "local setting file exists, reading..."
             $script:MyAddons = (get-content -path $MyAddonsFile -ErrorAction stop) | ConvertFrom-Json 
             foreach ($MyAddon in $MyAddons) {
                 Update-MyAddon -id $MyAddon 
             }
         }
         else {
-            write-debug "local setting file DOESN'T exists, creating new one"
+            mydebug "local setting file DOESN'T exists, creating new one"
             $script:MyAddons = @()
         }
 
@@ -583,12 +620,12 @@ function Get-MyAddon {
         }
     }
     if ($id) {
-        write-debug "Get the selected addon with ID $ID"
+        mydebug "Get the selected addon with ID $ID"
         $script:MyAddons | Where-Object { $_.id -in $script:addons.id -and $_.id -eq $id }
         
     }
     else {
-        write-debug "Get all addons"
+        mydebug "Get all addons"
         $script:MyAddons | Where-Object { $_.id -in $script:addons.id }
     }
     
@@ -596,12 +633,12 @@ function Get-MyAddon {
 
 function Test-MyAddonExists {
     param($id)
-    write-debug "checking if addon with $id exists in settings"
+    mydebug "checking if addon with $id exists in settings"
     return ( $null -ne ($script:MyAddons | Where-Object { $_.ID -eq $id })  )
 }
 
 function Add-MyAddon( $id ) {
-    write-debug "adding addon with id=$($addon.id) (name=$($addon.name)) to local settings"
+    mydebug "adding addon with id=$($addon.id) (name=$($addon.name)) to local settings"
     $script:MyAddons += [PSCustomObject]@{ id = $id; enabled = $False; InstalledVersion = ''; State = "Not Installed"; }
 }
 
@@ -616,13 +653,13 @@ function Save-MyAddon {
 
 function Enable-MyAddon {
     param($id)
-    write-debug "enabling addon with ID $id"
+    mydebug "enabling addon with ID $id"
     Set-MyAddon -id $id -Enabled $True
 }
 
 function Disable-MyAddon {
     param($id)
-    write-debug "disabling addon with ID $id"
+    mydebug "disabling addon with ID $id"
     Set-MyAddon -id $id -Enabled $False
 }
 
@@ -683,11 +720,11 @@ function Update-MyAddonVersion{
     param($id, [switch]$Uninstalled)
     if($Uninstalled)
     {
-        write-debug "Addon $id set to uninstalled"
+        mydebug "Addon $id set to uninstalled"
         Set-MyAddon -id $id -InstalledVersion ''
     }
     else {
-        write-debug "Addon $id set to installed"
+        mydebug "Addon $id set to installed"
         Set-MyAddon -id $id -InstalledVersion ((Get-MyAddonsJoined -id $id).UpstreamVersion)
     }
     
@@ -695,7 +732,10 @@ function Update-MyAddonVersion{
 
 function Update-MyAddonMeta {
     foreach ($addon in Get-MyAddonsJoined) {
-        if ($addon.InstalledVersion -in '', $null -and $addon.enabled) {
+        if($addon.UpstreamVersion -in '',$null,0 -or $addon.UpstreamVersion.trim() -eq '') {
+            Set-MyAddon -State "Error" -id $addon.id
+        }
+        elseif ($addon.InstalledVersion -in '', $null -and $addon.enabled) {
             Set-MyAddon -State "Install pending" -id $addon.id
         }   
         elseif ($addon.InstalledVersion -notin '', $null -and !$addon.enabled) {
@@ -721,7 +761,7 @@ function Update-MyAddonMeta {
 # }
 
 function ParseNodeValue ( $Node, [string]$AddonID ) {
-    write-debug "ParseNodeValue $AddonID"
+    mydebug "ParseNodeValue $AddonID"
     $Val = $Node.value
     if ($Node.type -eq "Raw") {
         return $Val
@@ -768,7 +808,7 @@ $ParseNodeValueAsString = $function:ParseNodeValue.ToString()
 
 
 function ParseValue( $Value, [string]$AddonID ) {
-    write-debug "ParseValue $AddonID $Value" 
+    mydebug "ParseValue $AddonID $Value" 
     while ($Value | Select-String -pattern '{{(.+)}}') {
         $Attr = ($Value | Select-String -pattern '{{([\w\d]+)}}' -AllMatches).matches.groups[1].value
         $Value = $Value -replace [REGEX]::Escape('{{' + $attr + '}}'), (GetVar -key $Attr -AddonID $AddonID) 
@@ -778,7 +818,7 @@ function ParseValue( $Value, [string]$AddonID ) {
 $ParseValueAsString = $function:ParseValue.ToString()
 
 function GetVar( [string]$key, [string]$AddonID) {
-    write-debug "GetVar '$key' '$AddonID'"
+    mydebug "GetVar '$key' '$AddonID'"
     
     if ($AddonID) {
         if ($key -eq "AddonName") {
@@ -808,7 +848,7 @@ foreach ($add in (Select-Xml -Xml $XMLVars -XPath "/xml/add").node) {
     $Val = (ParseNodeValue -node $add)
     Set-Variable -Name $add.key -value $val -Scope Script 
     $GVars += [PSCustomObject]@{Name=($add.key);Value=$Val}
-    write-debug "Global Var ""$($add.key)"" with val ""$Val"" scope 'Script'"
+    mydebug "Global Var ""$($add.key)"" with val ""$Val"" scope 'Script'"
     $Val = $null
 }
 
@@ -816,14 +856,43 @@ foreach ($add in (Select-Xml -Xml $XMLVars -XPath "/xml/add").node) {
 $script:addons = @()
 write-host "Initializing addons..." -ForegroundColor $ForegroundcolorStatusInformation
 if ($UseParallel -and $PSVersionTable.PSVersion.Major -ge 7) {
+    mydebug "Parallel execution of addon init"
     (Select-Xml -Xml $XMLVars -XPath "/xml/addons/addon").node | foreach-object -parallel {
         # make functions available in here
         $function:ParseNodeValue = $using:ParseNodeValueAsString
         $function:ParseValue = $using:ParseValueAsString
 
+        # also logging
+        function mylog
+        {
+            param([string]$msg)
+            $msg = ((get-date -format "yyyyMMdd_HHmmss:" )+$msg)
+            $i=0
+            while(!$done -and $i -lt 10)
+            {
+                try{
+                    $msg | out-file -filepath $using:LogPath -append -ErrorAction stop
+                    $done = $true
+                }
+                catch
+                {
+                    $i++;
+                    start-sleep -seconds $i
+                }
+
+            }
+        }
+
+        function mydebug 
+        {
+            param([string]$msg)
+            write-debug $msg
+            mylog $msg    
+        }
+
         # getVar is different in here... sadly
         function GetVar( [string]$key, [string]$AddonID) {
-            write-debug "GetVar '$key' '$AddonID'"
+            mydebug "GetVar '$key' '$AddonID'"
             
             if ($AddonID) {
                 if ($AddonID -eq $script:ObjAddon.id) {
@@ -874,13 +943,14 @@ if ($UseParallel -and $PSVersionTable.PSVersion.Major -ge 7) {
         }
     
         # conditional vars
-        write-debug "Addon Var ""$($add.key)"" with val ""$Val"""
+        mydebug "Addon Var ""$($add.key)"" with val ""$Val"""
 
         $ObjAddon
     } | foreach-object { $script:addons += $_ }
 }
 else {
     foreach ($addon in (Select-Xml -Xml $XMLVars -XPath "/xml/addons/addon").node) {
+        mydebug "Sequential execution of addon init"
         $id = [int]$addon.id
         $ObjAddon = [PSCustomObject]@{ id = $id }
         $script:addons += $ObjAddon
@@ -903,7 +973,7 @@ else {
         }
     
         # conditional vars
-        write-debug "Addon Var ""$($add.key)"" with val ""$Val"""
+        mydebug "Addon Var ""$($add.key)"" with val ""$Val"""
         $Val = $null
     }
 }
@@ -1020,7 +1090,7 @@ function Invoke-Menu {
 
         # Adding addon toggle to actions, AFTER they are displayed, as we don't want to show them twice.
         foreach ($J in $JA) {
-            Write-Debug "Adding addon to actions: $($J.ID) $($J.name): ""Toggle-Addon -id $($J.id)"" "
+            mydebug "Adding addon to actions: $($J.ID) $($J.name): ""Toggle-Addon -id $($J.id)"" "
             $Actions += [PSCustomObject]@{ ID = $J.ID; Text = "Toggle enabled flag of Addon ""$($J.name)"""; Function = "Toggle-Addon -id $($J.id)" }
         }
 
@@ -1040,6 +1110,7 @@ function Invoke-Menu {
         foreach ($O in $Option) {
             if ($O -eq "Q") {
                 write-host "bye!"
+                Stop-Transcript | out-null
                 Return
             }
             if ($O -eq "N") {
@@ -1146,7 +1217,7 @@ function Set-Addon {
     $InstallAddons = @()
 
     $Addons | Where-Object { $_.enabled -eq $false -and $_.InstalledVersion -notin '', $null } | ForEach-Object{ $UninstallAddons += $_ }
-    $Addons | Where-Object { $_.enabled -eq $true -and ($_.InstalledVersion -in '', $null -or $_.InstalledVersion -ne $_.UpstreamVersion) } | ForEach-Object{ $InstallAddons += $_ }
+    $Addons | Where-Object { $_.enabled -eq $true -and $_.state -ne "Error" -and ($_.InstalledVersion -in '', $null -or $_.InstalledVersion -ne $_.UpstreamVersion) } | ForEach-Object{ $InstallAddons += $_ }
 
     $AffectedIDs = @()
     $UninstallAddons.ID | ForEach-Object{ $AffectedIDs += $_ }
@@ -1159,7 +1230,7 @@ function Set-Addon {
     $ReinstallAddons = $Addons | Where-Object { (Test-CrossContains -a $_.Steps.IfIds -b $AffectedIDs) -or  (Test-CrossContains -a $_.Steps.IfNotIds -b $AffectedIDs) } 
     $ReinstallAddons | ForEach-Object { $UninstallAddons += $_; $InstallAddons += $_   }
 
-    write-debug "those addons need reinstallement (affectedIDs=$($AffectedIDs -join ', ')): $($ReinstallAddons.Id -join ', ')"
+    mydebug "those addons need reinstallement (affectedIDs=$($AffectedIDs -join ', ')): $($ReinstallAddons.Id -join ', ')"
 
     # Check for running application
     $UninstallAddons.RequiresAppClosed | Sort-Object -Unique | ForEach-Object{ RequireAppClosed -Path $_ -ErrorAction STOP } | ForEach-Object{ if($_ -contains "cancel") { return } else { $_ }}
@@ -1167,39 +1238,39 @@ function Set-Addon {
     
     # Find StepDepth 
     $MaxDepth = ((Get-MyAddonsJoined).Steps.Level | measure-object -max).Maximum
-    write-debug "found maxdepth $Maxdepth"
+    mydebug "found maxdepth $Maxdepth"
     # Uninstall
     if ($null -ne $UninstallAddons -and $UninstallAddons.Count -gt 0) {
-        write-debug "uninstalling $($UninstallAddons.count) addons..."
+        mydebug "uninstalling $($UninstallAddons.count) addons..."
         $IEX = '$UninstallAddons '#Uninstall-addon
         for ($i = $MaxDepth; $i -ge 0; $i--) {
-            write-debug $i
+            mydebug $i
             $IEX = $IEX + '| UnDoAddonStep -level '+$i+' -passthru ' # | %{ Update-MyAddonVersion -id $_.id -uninstalled }'
         }
         $IEX = $IEX + '| %{ Update-MyAddonVersion -id $_.id -uninstalled}'
-        write-debug "$IEX"
+        mydebug "$IEX"
         Invoke-Expression $IEX
-        write-debug "done"
+        mydebug "done"
         Save-MyAddon
     }
     else {
-        Write-debug "no addons to uninstall"
+        mydebug "no addons to uninstall"
     }
     # Install
     if ($null -ne $installAddons -and $installAddons.Count -gt 0) {
-        write-debug "installing $($InstallAddons.count) addons..."
+        mydebug "installing $($InstallAddons.count) addons..."
         $IEX = '$installAddons '#Uninstall-addon
         for ($i = 1; $i -le $MaxDepth; $i++) {
             $IEX = $IEX + "| DoAddonStep -level $i -passthru"
         }
-        write-debug "$IEX"
+        mydebug "$IEX"
         $IEX = $IEX + '| DoAddonCleanup -passthru | %{ Update-MyAddonVersion -id $_.id }'
         Invoke-Expression $IEX
-        write-debug "done"
+        mydebug "done"
         Save-MyAddon
     }
     else {
-        Write-debug "no addons to install"
+        mydebug "no addons to install"
     }
     if(test-path $addontemp)
     {
@@ -1223,10 +1294,10 @@ function DoAddonStep {
         # find the correct step
         $EnabledAddonIDs = (Get-MyAddon | Where-Object { $_.Enabled -eq "True"}).ID | ForEach-Object{ [string]$_ }
         $Step = $Addon.Steps | Where-Object { $_.level -eq [string]$level }
-        write-debug "Found $($step.count) Steps, now filtering by conditions..."
-        write-debug "EAIDs: $($EnabledAddonIDs -join ',')"
+        mydebug "Found $($step.count) Steps, now filtering by conditions..."
+        mydebug "EAIDs: $($EnabledAddonIDs -join ',')"
         $Step = $Step | Where-Object { ($null -eq $_.IfNotIDs -or !(Test-CrossContains -a ($_.IfNotIDs -split ',') -b $EnabledAddonIDs)) -and ($null -eq $_.IfIDs -or (Test-CrossContains -a ($_.IfIDs -split ',') -b $EnabledAddonIDs)) } 
-        write-debug "$($step.count) Steps survived conditions"
+        mydebug "$($step.count) Steps survived conditions"
 
         if ($null -ne $step) {
             if ($Step.Count -gt 1) {
@@ -1266,7 +1337,7 @@ function DoAddonStep {
             }
         }
         else {
-            write-debug "nothing to do ($($addon.name): level=$level)"
+            mydebug "nothing to do ($($addon.name): level=$level)"
         }
 
         if ($PassThru) {
@@ -1293,7 +1364,7 @@ function UnDoAddonStep {
         if ($null -ne $steps) {
             foreach($step in $steps)
             {
-                write-debug "foreach step ($($Step.action)) in Steps ($($Steps.count))... "
+                mydebug "foreach step ($($Step.action)) in Steps ($($Steps.count))... "
                 $ErrCount = 0
                 $MaxRetries = 3
                 do {
@@ -1303,23 +1374,23 @@ function UnDoAddonStep {
                     try {
                         if($step.action -eq "unzip")
                         {
-                            Write-debug "Can't perform undo for unzipping $($step.from) to $($step.to) - sorry, but the risk is too high. For now... "
+                            mydebug "Can't perform undo for unzipping $($step.from) to $($step.to) - sorry, but the risk is too high. For now... "
                         }
                         elseif($step.from -match "\*")
                         {
-                            Write-debug "Can't perform undo for moving or copying with wildcards  $($step.from) to $($step.to) - sorry for wasting disk space, but the risk is too high. For now... "
+                            mydebug "Can't perform undo for moving or copying with wildcards  $($step.from) to $($step.to) - sorry for wasting disk space, but the risk is too high. For now... "
                         }
                         else {
                             if(test-path -path $step.to)
                             {
-                                write-debug "removing file $($step.to)"
+                                mydebug "removing file $($step.to)"
                                 Remove-Item -Path $step.to -force -Erroraction stop
                             }
                         }
                         $Done = $true
                     }
                     Catch {
-                        write-debug "EXCEPTION: $_"
+                        mydebug "EXCEPTION: $_"
                         $ErrCount++;
                         if ($ErrCount -ge $MaxRetries) {
                             Throw "Maximum retries exceeded on ""$($step.action)"" from $($step.from) to $($step.to)"
@@ -1329,7 +1400,7 @@ function UnDoAddonStep {
             }
         }
         else {
-            write-debug "No UNDO step at level=$($Level) for addon $($addon.name)"
+            mydebug "No UNDO step at level=$($Level) for addon $($addon.name)"
         }
 
         if ($PassThru) {
@@ -1425,7 +1496,7 @@ function RequireAppClosed {
     $mod = ""
     while((get-process | Where-Object { $_.Path -eq $Path}).count -gt 0)
     {
-        write-debug "RequireAppClosed Path=$Path | count=$count"
+        mydebug "RequireAppClosed Path=$Path | count=$count"
         if ($Count -eq 1) {
             $mod = " still"
         }

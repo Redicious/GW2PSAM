@@ -4,7 +4,7 @@
 # }
 
 function ParseNodeValue ( $Node, [string]$AddonID ) {
-    write-debug "ParseNodeValue $AddonID"
+    mydebug "ParseNodeValue $AddonID"
     $Val = $Node.value
     if ($Node.type -eq "Raw") {
         return $Val
@@ -51,7 +51,7 @@ $ParseNodeValueAsString = $function:ParseNodeValue.ToString()
 
 
 function ParseValue( $Value, [string]$AddonID ) {
-    write-debug "ParseValue $AddonID $Value" 
+    mydebug "ParseValue $AddonID $Value" 
     while ($Value | Select-String -pattern '{{(.+)}}') {
         $Attr = ($Value | Select-String -pattern '{{([\w\d]+)}}' -AllMatches).matches.groups[1].value
         $Value = $Value -replace [REGEX]::Escape('{{' + $attr + '}}'), (GetVar -key $Attr -AddonID $AddonID) 
@@ -61,7 +61,7 @@ function ParseValue( $Value, [string]$AddonID ) {
 $ParseValueAsString = $function:ParseValue.ToString()
 
 function GetVar( [string]$key, [string]$AddonID) {
-    write-debug "GetVar '$key' '$AddonID'"
+    mydebug "GetVar '$key' '$AddonID'"
     
     if ($AddonID) {
         if ($key -eq "AddonName") {
@@ -91,7 +91,7 @@ foreach ($add in (Select-Xml -Xml $XMLVars -XPath "/xml/add").node) {
     $Val = (ParseNodeValue -node $add)
     Set-Variable -Name $add.key -value $val -Scope Script 
     $GVars += [PSCustomObject]@{Name=($add.key);Value=$Val}
-    write-debug "Global Var ""$($add.key)"" with val ""$Val"" scope 'Script'"
+    mydebug "Global Var ""$($add.key)"" with val ""$Val"" scope 'Script'"
     $Val = $null
 }
 
@@ -99,14 +99,43 @@ foreach ($add in (Select-Xml -Xml $XMLVars -XPath "/xml/add").node) {
 $script:addons = @()
 write-host "Initializing addons..." -ForegroundColor $ForegroundcolorStatusInformation
 if ($UseParallel -and $PSVersionTable.PSVersion.Major -ge 7) {
+    mydebug "Parallel execution of addon init"
     (Select-Xml -Xml $XMLVars -XPath "/xml/addons/addon").node | foreach-object -parallel {
         # make functions available in here
         $function:ParseNodeValue = $using:ParseNodeValueAsString
         $function:ParseValue = $using:ParseValueAsString
 
+        # also logging
+        function mylog
+        {
+            param([string]$msg)
+            $msg = ((get-date -format "yyyyMMdd_HHmmss:" )+$msg)
+            $i=0
+            while(!$done -and $i -lt 10)
+            {
+                try{
+                    $msg | out-file -filepath $using:LogPath -append -ErrorAction stop
+                    $done = $true
+                }
+                catch
+                {
+                    $i++;
+                    start-sleep -seconds $i
+                }
+
+            }
+        }
+
+        function mydebug 
+        {
+            param([string]$msg)
+            write-debug $msg
+            mylog $msg    
+        }
+
         # getVar is different in here... sadly
         function GetVar( [string]$key, [string]$AddonID) {
-            write-debug "GetVar '$key' '$AddonID'"
+            mydebug "GetVar '$key' '$AddonID'"
             
             if ($AddonID) {
                 if ($AddonID -eq $script:ObjAddon.id) {
@@ -157,13 +186,14 @@ if ($UseParallel -and $PSVersionTable.PSVersion.Major -ge 7) {
         }
     
         # conditional vars
-        write-debug "Addon Var ""$($add.key)"" with val ""$Val"""
+        mydebug "Addon Var ""$($add.key)"" with val ""$Val"""
 
         $ObjAddon
     } | foreach-object { $script:addons += $_ }
 }
 else {
     foreach ($addon in (Select-Xml -Xml $XMLVars -XPath "/xml/addons/addon").node) {
+        mydebug "Sequential execution of addon init"
         $id = [int]$addon.id
         $ObjAddon = [PSCustomObject]@{ id = $id }
         $script:addons += $ObjAddon
@@ -186,7 +216,7 @@ else {
         }
     
         # conditional vars
-        write-debug "Addon Var ""$($add.key)"" with val ""$Val"""
+        mydebug "Addon Var ""$($add.key)"" with val ""$Val"""
         $Val = $null
     }
 }

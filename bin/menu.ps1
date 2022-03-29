@@ -108,7 +108,7 @@ function Invoke-Menu {
 
         # Adding addon toggle to actions, AFTER they are displayed, as we don't want to show them twice.
         foreach ($J in $JA) {
-            Write-Debug "Adding addon to actions: $($J.ID) $($J.name): ""Toggle-Addon -id $($J.id)"" "
+            mydebug "Adding addon to actions: $($J.ID) $($J.name): ""Toggle-Addon -id $($J.id)"" "
             $Actions += [PSCustomObject]@{ ID = $J.ID; Text = "Toggle enabled flag of Addon ""$($J.name)"""; Function = "Toggle-Addon -id $($J.id)" }
         }
 
@@ -128,6 +128,7 @@ function Invoke-Menu {
         foreach ($O in $Option) {
             if ($O -eq "Q") {
                 write-host "bye!"
+                Stop-Transcript | out-null
                 Return
             }
             if ($O -eq "N") {

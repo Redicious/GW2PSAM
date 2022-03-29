@@ -10,10 +10,23 @@ Param(
     [Parameter(Mandatory = $false)][Switch] $NoParallelExec,
     [Parameter(Mandatory = $false)][Switch] $Exe
 )
+
 If ($PSBoundParameters["Debug"]) {
     $DebugPreference = "Continue"
 }
-$Bootstrap = $false
-$Version = "1.6.0.2" #Major.Minor.Build.Revision
-write-debug "Version = $Version"
-$UseParallel = ![bool]($NoParallelExec)
+
+$Version = "1.7.0.0" #Major.Minor.Build.Revision
+
+function mylog
+{
+    param([string]$msg)
+
+    $msg | out-file -filepath $LogPath -append
+}
+
+function mydebug 
+{
+    param([string]$msg)
+    write-debug $msg
+    mylog $msg    
+}

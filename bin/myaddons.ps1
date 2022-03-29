@@ -7,14 +7,14 @@ function Get-MyAddon {
     CreateAppdata
     if ($null -eq (get-variable -name MyAddons -scope script -ErrorAction SilentlyContinue)) {
         if (test-path -path $MyAddonsFile) {
-            write-debug "local setting file exists, reading..."
+            mydebug "local setting file exists, reading..."
             $script:MyAddons = (get-content -path $MyAddonsFile -ErrorAction stop) | ConvertFrom-Json 
             foreach ($MyAddon in $MyAddons) {
                 Update-MyAddon -id $MyAddon 
             }
         }
         else {
-            write-debug "local setting file DOESN'T exists, creating new one"
+            mydebug "local setting file DOESN'T exists, creating new one"
             $script:MyAddons = @()
         }
 
@@ -25,12 +25,12 @@ function Get-MyAddon {
         }
     }
     if ($id) {
-        write-debug "Get the selected addon with ID $ID"
+        mydebug "Get the selected addon with ID $ID"
         $script:MyAddons | Where-Object { $_.id -in $script:addons.id -and $_.id -eq $id }
         
     }
     else {
-        write-debug "Get all addons"
+        mydebug "Get all addons"
         $script:MyAddons | Where-Object { $_.id -in $script:addons.id }
     }
     
@@ -38,12 +38,12 @@ function Get-MyAddon {
 
 function Test-MyAddonExists {
     param($id)
-    write-debug "checking if addon with $id exists in settings"
+    mydebug "checking if addon with $id exists in settings"
     return ( $null -ne ($script:MyAddons | Where-Object { $_.ID -eq $id })  )
 }
 
 function Add-MyAddon( $id ) {
-    write-debug "adding addon with id=$($addon.id) (name=$($addon.name)) to local settings"
+    mydebug "adding addon with id=$($addon.id) (name=$($addon.name)) to local settings"
     $script:MyAddons += [PSCustomObject]@{ id = $id; enabled = $False; InstalledVersion = ''; State = "Not Installed"; }
 }
 
@@ -58,13 +58,13 @@ function Save-MyAddon {
 
 function Enable-MyAddon {
     param($id)
-    write-debug "enabling addon with ID $id"
+    mydebug "enabling addon with ID $id"
     Set-MyAddon -id $id -Enabled $True
 }
 
 function Disable-MyAddon {
     param($id)
-    write-debug "disabling addon with ID $id"
+    mydebug "disabling addon with ID $id"
     Set-MyAddon -id $id -Enabled $False
 }
 
@@ -125,11 +125,11 @@ function Update-MyAddonVersion{
     param($id, [switch]$Uninstalled)
     if($Uninstalled)
     {
-        write-debug "Addon $id set to uninstalled"
+        mydebug "Addon $id set to uninstalled"
         Set-MyAddon -id $id -InstalledVersion ''
     }
     else {
-        write-debug "Addon $id set to installed"
+        mydebug "Addon $id set to installed"
         Set-MyAddon -id $id -InstalledVersion ((Get-MyAddonsJoined -id $id).UpstreamVersion)
     }
     
@@ -137,7 +137,10 @@ function Update-MyAddonVersion{
 
 function Update-MyAddonMeta {
     foreach ($addon in Get-MyAddonsJoined) {
-        if ($addon.InstalledVersion -in '', $null -and $addon.enabled) {
+        if($addon.UpstreamVersion -in '',$null,0 -or $addon.UpstreamVersion.trim() -eq '') {
+            Set-MyAddon -State "Error" -id $addon.id
+        }
+        elseif ($addon.InstalledVersion -in '', $null -and $addon.enabled) {
             Set-MyAddon -State "Install pending" -id $addon.id
         }   
         elseif ($addon.InstalledVersion -notin '', $null -and !$addon.enabled) {

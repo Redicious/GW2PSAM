@@ -29,14 +29,14 @@ if (!$NoExe) {
 try {
     $Result = @()
     $Result += get-content .\head.ps1 -raw -ErrorAction STOP
+    $Result += '# settings.ps1'
+    $Result += get-content .\settings.ps1 -raw -ErrorAction STOP
     $Result += '# bootstrap.ps1'
     $Result += get-content .\bootstrap.ps1 -raw -ErrorAction STOP
     $Result += '# help.ps1'
     $Result += get-content .\help.ps1 -raw -ErrorAction STOP
     $Result += '# functions.ps1'
     $Result += get-content .\functions.ps1 -raw -ErrorAction STOP
-    $Result += '# settings.ps1'
-    $Result += get-content .\settings.ps1 -raw -ErrorAction STOP
     $Result += '# vars.xml'
     $Result += '$XMLVars = [XML]' + "@'`r`n" + ((get-content .\vars.xml -raw)) + "`r`n'@"
     $Result += '# myaddons.ps1'

@@ -16,7 +16,7 @@ function Set-Addon {
     $InstallAddons = @()
 
     $Addons | Where-Object { $_.enabled -eq $false -and $_.InstalledVersion -notin '', $null } | ForEach-Object{ $UninstallAddons += $_ }
-    $Addons | Where-Object { $_.enabled -eq $true -and ($_.InstalledVersion -in '', $null -or $_.InstalledVersion -ne $_.UpstreamVersion) } | ForEach-Object{ $InstallAddons += $_ }
+    $Addons | Where-Object { $_.enabled -eq $true -and $_.state -ne "Error" -and ($_.InstalledVersion -in '', $null -or $_.InstalledVersion -ne $_.UpstreamVersion) } | ForEach-Object{ $InstallAddons += $_ }
 
     $AffectedIDs = @()
     $UninstallAddons.ID | ForEach-Object{ $AffectedIDs += $_ }
@@ -29,7 +29,7 @@ function Set-Addon {
     $ReinstallAddons = $Addons | Where-Object { (Test-CrossContains -a $_.Steps.IfIds -b $AffectedIDs) -or  (Test-CrossContains -a $_.Steps.IfNotIds -b $AffectedIDs) } 
     $ReinstallAddons | ForEach-Object { $UninstallAddons += $_; $InstallAddons += $_   }
 
-    write-debug "those addons need reinstallement (affectedIDs=$($AffectedIDs -join ', ')): $($ReinstallAddons.Id -join ', ')"
+    mydebug "those addons need reinstallement (affectedIDs=$($AffectedIDs -join ', ')): $($ReinstallAddons.Id -join ', ')"
 
     # Check for running application
     $UninstallAddons.RequiresAppClosed | Sort-Object -Unique | ForEach-Object{ RequireAppClosed -Path $_ -ErrorAction STOP } | ForEach-Object{ if($_ -contains "cancel") { return } else { $_ }}
@@ -37,39 +37,39 @@ function Set-Addon {
     
     # Find StepDepth 
     $MaxDepth = ((Get-MyAddonsJoined).Steps.Level | measure-object -max).Maximum
-    write-debug "found maxdepth $Maxdepth"
+    mydebug "found maxdepth $Maxdepth"
     # Uninstall
     if ($null -ne $UninstallAddons -and $UninstallAddons.Count -gt 0) {
-        write-debug "uninstalling $($UninstallAddons.count) addons..."
+        mydebug "uninstalling $($UninstallAddons.count) addons..."
         $IEX = '$UninstallAddons '#Uninstall-addon
         for ($i = $MaxDepth; $i -ge 0; $i--) {
-            write-debug $i
+            mydebug $i
             $IEX = $IEX + '| UnDoAddonStep -level '+$i+' -passthru ' # | %{ Update-MyAddonVersion -id $_.id -uninstalled }'
         }
         $IEX = $IEX + '| %{ Update-MyAddonVersion -id $_.id -uninstalled}'
-        write-debug "$IEX"
+        mydebug "$IEX"
         Invoke-Expression $IEX
-        write-debug "done"
+        mydebug "done"
         Save-MyAddon
     }
     else {
-        Write-debug "no addons to uninstall"
+        mydebug "no addons to uninstall"
     }
     # Install
     if ($null -ne $installAddons -and $installAddons.Count -gt 0) {
-        write-debug "installing $($InstallAddons.count) addons..."
+        mydebug "installing $($InstallAddons.count) addons..."
         $IEX = '$installAddons '#Uninstall-addon
         for ($i = 1; $i -le $MaxDepth; $i++) {
             $IEX = $IEX + "| DoAddonStep -level $i -passthru"
         }
-        write-debug "$IEX"
+        mydebug "$IEX"
         $IEX = $IEX + '| DoAddonCleanup -passthru | %{ Update-MyAddonVersion -id $_.id }'
         Invoke-Expression $IEX
-        write-debug "done"
+        mydebug "done"
         Save-MyAddon
     }
     else {
-        Write-debug "no addons to install"
+        mydebug "no addons to install"
     }
     if(test-path $addontemp)
     {
@@ -93,10 +93,10 @@ function DoAddonStep {
         # find the correct step
         $EnabledAddonIDs = (Get-MyAddon | Where-Object { $_.Enabled -eq "True"}).ID | ForEach-Object{ [string]$_ }
         $Step = $Addon.Steps | Where-Object { $_.level -eq [string]$level }
-        write-debug "Found $($step.count) Steps, now filtering by conditions..."
-        write-debug "EAIDs: $($EnabledAddonIDs -join ',')"
+        mydebug "Found $($step.count) Steps, now filtering by conditions..."
+        mydebug "EAIDs: $($EnabledAddonIDs -join ',')"
         $Step = $Step | Where-Object { ($null -eq $_.IfNotIDs -or !(Test-CrossContains -a ($_.IfNotIDs -split ',') -b $EnabledAddonIDs)) -and ($null -eq $_.IfIDs -or (Test-CrossContains -a ($_.IfIDs -split ',') -b $EnabledAddonIDs)) } 
-        write-debug "$($step.count) Steps survived conditions"
+        mydebug "$($step.count) Steps survived conditions"
 
         if ($null -ne $step) {
             if ($Step.Count -gt 1) {
@@ -136,7 +136,7 @@ function DoAddonStep {
             }
         }
         else {
-            write-debug "nothing to do ($($addon.name): level=$level)"
+            mydebug "nothing to do ($($addon.name): level=$level)"
         }
 
         if ($PassThru) {
@@ -163,7 +163,7 @@ function UnDoAddonStep {
         if ($null -ne $steps) {
             foreach($step in $steps)
             {
-                write-debug "foreach step ($($Step.action)) in Steps ($($Steps.count))... "
+                mydebug "foreach step ($($Step.action)) in Steps ($($Steps.count))... "
                 $ErrCount = 0
                 $MaxRetries = 3
                 do {
@@ -173,23 +173,23 @@ function UnDoAddonStep {
                     try {
                         if($step.action -eq "unzip")
                         {
-                            Write-debug "Can't perform undo for unzipping $($step.from) to $($step.to) - sorry, but the risk is too high. For now... "
+                            mydebug "Can't perform undo for unzipping $($step.from) to $($step.to) - sorry, but the risk is too high. For now... "
                         }
                         elseif($step.from -match "\*")
                         {
-                            Write-debug "Can't perform undo for moving or copying with wildcards  $($step.from) to $($step.to) - sorry for wasting disk space, but the risk is too high. For now... "
+                            mydebug "Can't perform undo for moving or copying with wildcards  $($step.from) to $($step.to) - sorry for wasting disk space, but the risk is too high. For now... "
                         }
                         else {
                             if(test-path -path $step.to)
                             {
-                                write-debug "removing file $($step.to)"
+                                mydebug "removing file $($step.to)"
                                 Remove-Item -Path $step.to -force -Erroraction stop
                             }
                         }
                         $Done = $true
                     }
                     Catch {
-                        write-debug "EXCEPTION: $_"
+                        mydebug "EXCEPTION: $_"
                         $ErrCount++;
                         if ($ErrCount -ge $MaxRetries) {
                             Throw "Maximum retries exceeded on ""$($step.action)"" from $($step.from) to $($step.to)"
@@ -199,7 +199,7 @@ function UnDoAddonStep {
             }
         }
         else {
-            write-debug "No UNDO step at level=$($Level) for addon $($addon.name)"
+            mydebug "No UNDO step at level=$($Level) for addon $($addon.name)"
         }
 
         if ($PassThru) {
@@ -295,7 +295,7 @@ function RequireAppClosed {
     $mod = ""
     while((get-process | Where-Object { $_.Path -eq $Path}).count -gt 0)
     {
-        write-debug "RequireAppClosed Path=$Path | count=$count"
+        mydebug "RequireAppClosed Path=$Path | count=$count"
         if ($Count -eq 1) {
             $mod = " still"
         }
