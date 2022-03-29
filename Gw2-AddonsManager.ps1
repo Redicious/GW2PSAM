@@ -15,7 +15,7 @@ If ($PSBoundParameters["Debug"]) {
     $DebugPreference = "Continue"
 }
 
-$Version = "1.7.0.0" #Major.Minor.Build.Revision
+$Version = "1.7.0.1" #Major.Minor.Build.Revision
 
 function mylog
 {
@@ -123,7 +123,7 @@ if(!$IgnoreRemoteUpdate)
             mydebug "Call myself, updated/installed..."
             Get-Content $LocalBinPath -ErrorAction STOP -raw | Invoke-Expression
             switch ($PsCmdlet.ParameterSetName) {
-                "None" { GW2AddonManager }
+                "None" { GW2AddonManager -cmd $cmd}
                 "Help" { GW2AddonManager -help:$help }
                 "Auto" { GW2AddonManager -auto:$auto -keepopen:$keepopen }
             }      
