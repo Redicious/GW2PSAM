@@ -15,7 +15,7 @@ If ($PSBoundParameters["Debug"]) {
     $DebugPreference = "Continue"
 }
 
-$Version = "1.7.0.1" #Major.Minor.Build.Revision
+$Version = "1.7.0.2" #Major.Minor.Build.Revision
 
 function mylog
 {
@@ -342,6 +342,7 @@ $XMLVars = [XML]@'
     <add key="GW2Exec" value='{{GW2Dir}}Gw2-64.exe'/>
     <add key="MyAddonsFile" value='{{AppData}}MyAddons.JSON'/>
     <add key="LocalBinPath" value="{{AddonTemp}}Gw2-AddonsManager.ps1"/>
+    <add key="LogFile" value=""/>
     
     <!-- TacO stuff --> 
     <add key="TacODir" value='{{GW2Dir}}TacO\'/><!-- will be configurable.. at some point -->
@@ -588,6 +589,20 @@ $XMLVars = [XML]@'
             <add key="RequiresAppClosed" value="{{GW2Exec}}"/>
             <add key="RequiresAddon" value="40"/>
             <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}"/>
+        </addon>
+        <addon id="45">
+            <add key="Name" value="Arc DPS Blish-Hud plugin"/>
+            <add key="GitHubU" value="blish-hud"/>
+            <add key="GitHubR" value="arcdps-bhud"/>
+            <add key="DownloadURL" value='("https://github.com" + (((Invoke-WebRequest https://github.com/{{GitHubU}}/{{GitHubR}}/releases/latest/ -UseBasicParsing).content -split "`r`n" | select-string -pattern "`"\/.*-x86_64-pc-windows-gnu\.zip`"" -AllMatches).matches.groups[0].value -replace """"));' type="ScriptBlock"/>
+            <add key="UpstreamVersion" value='("{{DownloadURL}}" | sls -pattern "download/v(.*)/.*-x86_64-pc-windows-gnu\.zip" -allmatches).Matches.Groups[1].value' type="ScriptBlock"/>
+            <add key="RequiresAppClosed" value="{{GW2Exec}}"/>
+            <add key="RequiresAddon" value="4"/>
+            <add key="DownloadTo" value="{{AddonTemp}}{{AddonName}}\x86_64-pc-windows-gnu.zip"/>
+            <add key="UnzipTo" value="{{AddonTemp}}{{AddonName}}_Unzip\"/>
+            <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}" cleanup="1"/>
+            <Step level="2" action="unzip" from="{{DownloadTo}}" to="{{UnzipTo}}" cleanup="1"/>
+            <Step level="3" action="move" from="{{UnzipTo}}arcdps_bhud.dll" to="{{GW2Dir}}bin64\arcdps_bhud.dll"/>
         </addon>
     </addons>
 </xml>
