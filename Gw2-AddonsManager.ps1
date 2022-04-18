@@ -15,7 +15,7 @@ If ($PSBoundParameters["Debug"]) {
     $DebugPreference = "Continue"
 }
 
-$Version = "1.7.0.2" #Major.Minor.Build.Revision
+$Version = "1.7.0.3" #Major.Minor.Build.Revision
 
 function mylog
 {
@@ -390,8 +390,8 @@ $XMLVars = [XML]@'
         </addon>
         <addon id="3">
             <add key="Name" value="TacO Tekkit Poi"/>
-            <add key="DownloadURL" value="http://tekkitsworkshop.net/index.php/gw2-taco/download/send/2-taco-marker-packs/32-all-in-one"/>
-            <add key="UpstreamVersion" value='{{DownloadURL}}' type="WebHeaderLastModified"/>
+            <add key="DownloadURL" value="https://www.tekkitsworkshop.net/index.php/download?download=1:tw-all-in-one"/>
+            <add key="UpstreamVersion" value='(iwr -uri ("{{DownloadURL}}" -replace "\?.*") | select-object -expandproperty content | select-string -pattern "ALL-IN-ONE MARKER PACK - (\d+\.\d+\.\d+)").matches.groups[1].value' type="ScriptBlock"/>
             <add key="DownloadTo" value="{{TacODir}}POIs\tw_ALL_IN_ONE.taco"/>
             <add key="RequiresAppClosed" value="{{TacOExec}}"/>
             <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}"/>
@@ -451,8 +451,8 @@ $XMLVars = [XML]@'
         </addon>
         <addon id="11">
             <add key="Name" value="Blish-HUD Tekkit Poi"/>
-            <add key="DownloadURL" value="http://tekkitsworkshop.net/index.php/gw2-taco/download/send/2-taco-marker-packs/32-all-in-one"/>
-            <add key="UpstreamVersion" value='{{DownloadURL}}' type="WebHeaderLastModified"/>
+            <add key="DownloadURL" value="https://www.tekkitsworkshop.net/index.php/download?download=1:tw-all-in-one"/>
+            <add key="UpstreamVersion" value='(iwr -uri ("{{DownloadURL}}" -replace "\?.*") | select-object -expandproperty content | select-string -pattern "ALL-IN-ONE MARKER PACK - (\d+\.\d+\.\d+)").matches.groups[1].value' type="ScriptBlock"/>
             <add key="DownloadTo" value="{{BlishUDir}}markers\tw_ALL_IN_ONE.taco"/>
             <add key="RequiresAppClosed" value="{{BlishExec}}"/>
             <add key="RequiresAddon" value="10"/>
