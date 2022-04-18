@@ -18,6 +18,7 @@ catch
 
 start-transcript -path $TranscriptPath | Out-Null
 
+
 $Bootstrap = $false
 mydebug "Version = $Version"
 $UseParallel = ![bool]($NoParallelExec)

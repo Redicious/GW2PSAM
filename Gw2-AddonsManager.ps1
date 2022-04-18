@@ -15,7 +15,7 @@ If ($PSBoundParameters["Debug"]) {
     $DebugPreference = "Continue"
 }
 
-$Version = "1.7.0.3" #Major.Minor.Build.Revision
+$Version = "1.7.1.0" #Major.Minor.Build.Revision
 
 function mylog
 {
@@ -51,6 +51,7 @@ catch
 }
 
 start-transcript -path $TranscriptPath | Out-Null
+
 
 $Bootstrap = $false
 mydebug "Version = $Version"
@@ -391,7 +392,7 @@ $XMLVars = [XML]@'
         <addon id="3">
             <add key="Name" value="TacO Tekkit Poi"/>
             <add key="DownloadURL" value="https://www.tekkitsworkshop.net/index.php/download?download=1:tw-all-in-one"/>
-            <add key="UpstreamVersion" value='(iwr -uri ("{{DownloadURL}}" -replace "\?.*") | select-object -expandproperty content | select-string -pattern "ALL-IN-ONE MARKER PACK - (\d+\.\d+\.\d+)").matches.groups[1].value' type="ScriptBlock"/>
+            <add key="UpstreamVersion" value='(irm -uri ("{{DownloadURL}}" -replace "\?.*") | select-string -pattern "ALL-IN-ONE MARKER PACK - (\d+\.\d+\.\d+)").matches.groups[1].value' type="ScriptBlock"/>
             <add key="DownloadTo" value="{{TacODir}}POIs\tw_ALL_IN_ONE.taco"/>
             <add key="RequiresAppClosed" value="{{TacOExec}}"/>
             <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}"/>
@@ -452,7 +453,7 @@ $XMLVars = [XML]@'
         <addon id="11">
             <add key="Name" value="Blish-HUD Tekkit Poi"/>
             <add key="DownloadURL" value="https://www.tekkitsworkshop.net/index.php/download?download=1:tw-all-in-one"/>
-            <add key="UpstreamVersion" value='(iwr -uri ("{{DownloadURL}}" -replace "\?.*") | select-object -expandproperty content | select-string -pattern "ALL-IN-ONE MARKER PACK - (\d+\.\d+\.\d+)").matches.groups[1].value' type="ScriptBlock"/>
+            <add key="UpstreamVersion" value='(irm -uri ("{{DownloadURL}}" -replace "\?.*") | select-string -pattern "ALL-IN-ONE MARKER PACK - (\d+\.\d+\.\d+)").matches.groups[1].value' type="ScriptBlock"/>
             <add key="DownloadTo" value="{{BlishUDir}}markers\tw_ALL_IN_ONE.taco"/>
             <add key="RequiresAppClosed" value="{{BlishExec}}"/>
             <add key="RequiresAddon" value="10"/>
@@ -1022,6 +1023,11 @@ function Invoke-Menu {
  https://gitlab.deep-space-nomads.com/Redicious/guild-wars-2-addons-manager/`r`n" -BackgroundColor Black -ForegroundColor Red 
         } 
         
+        if($PSVersionTable.psversion.major -lt 7)
+        {
+            write-warning "you are running an old version of PowerShell ($($PSVersionTable.psversion.tostring())), consider updating!"
+        }
+
         $JA = Get-MyAddonsJoined -UpdateMeta
 
         $OptionIndex = ($JA | select-object id -ExpandProperty ID | sort-object ID -Descending | select-object -first 1) + 1
@@ -1076,8 +1082,8 @@ function Invoke-Menu {
             [PSCustomObject]@{ ID = "C"; Text = "Change GW2 Installpath (Currently ""$GW2Dir"")"; Function = '$GW2Dir = (Get-GW2Dir -force)'; EXE=$true  },
             [PSCustomObject]@{ ID = "H"; Text = "Display help page, addon information and limitations of this tool"; Function = "Write-HelpPage" },
             [PSCustomObject]@{ ID = "N"; Text = "Nothing and Refresh the menu, I changed my window size!"; Function = ""; EXE=$true  },
-            [PSCustomObject]@{ ID = "S"; Text = "Create Desktop Shortcut"; Function = "CreateSortcut";},
-            [PSCustomObject]@{ ID = "SA"; Text = "Create Desktop Shortcut with Autostart"; Function = "CreateSortcut -auto" },
+            #[PSCustomObject]@{ ID = "S"; Text = "Create Desktop Shortcut"; Function = "CreateSortcut";},
+            #[PSCustomObject]@{ ID = "SA"; Text = "Create Desktop Shortcut with Autostart"; Function = "CreateSortcut -auto" },
             #[PSCustomObject]@{ ID = "Res"; Text = "Reset addonmanager and exit"; Function = "" }
             [PSCustomObject]@{ ID = "Q"; Text = "Quit"; Function = "Quit()"; EXE=$true  }
         ) | % { $Actions += $_ }
