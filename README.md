@@ -1,6 +1,12 @@
 Guild Wars 2 Addons Manager is a simple script that lets you update addons for Guild Wars 2.
 Note that Guild Wars 2 has neither explicitly denied nor allowed the addons that are installed by the script. That means, they are OK'ish to use. Only OK'ish, because they can't control future updates of the addons and therefore can't give a green light.
 
+Why? At the time I started this, there weren't any open source Addon Managers for Guild Wars 2 - and Guildmates asked me to share this script, so I had to make it more usable for others... But now there are other tools available and I recommend using them instead!
+
+
+You are sure you want to proceed? Really?
+
+Ok... Here is some Information for noobs how to get it running.
 You have multiple options on running this script. But I didn't came up with a waterproof solution yet. Following you will find the the different solutions. If you wear a Tinfoil hat, then solution E1/E3 might be the best for you.
 If you trust me and have trouble with A and B, use D.
 
