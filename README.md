@@ -12,12 +12,12 @@ If you trust me and have trouble with A and B, use D.
 
 A. Download & Execute everytime.
 1. Open a powershell
-2. paste "(iwr https://gitlab.deep-space-nomads.com/Redicious/guild-wars-2-addons-manager/-/raw/master/Gw2-AddonsManager.ps1).content | iex; GW2AddonManager" into the shell and press enter.
+2. paste "(iwr https://raw.githubusercontent.com/Redicious/GW2PSAM/master/Gw2-AddonsManager.ps1).content | iex; GW2AddonManager" into the shell and press enter.
 3. Have fun
 
 B. Download via PowerShell and add Shortcuts to your Desktop
 1. Open a powershell
-2. paste "(iwr https://gitlab.deep-space-nomads.com/Redicious/guild-wars-2-addons-manager/-/raw/master/Gw2-AddonsManager.ps1).content | iex; GW2AddonManager" into the shell and press enter.
+2. paste "(iwr https://raw.githubusercontent.com/Redicious/GW2PSAM/master/Gw2-AddonsManager.ps1).content | iex; GW2AddonManager" into the shell and press enter.
 3. In the Menu, select the option for creating the Shortcut you want.
 4. Use the Shortcut the next time
 
