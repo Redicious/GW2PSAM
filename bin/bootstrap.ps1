@@ -6,7 +6,7 @@ if(!$IgnoreRemoteUpdate)
     }
 
     
-    $URL = "https://gitlab.deep-space-nomads.com/Redicious/guild-wars-2-addons-manager/-/raw/master/Gw2-AddonsManager.ps1"
+    $URL = "https://raw.githubusercontent.com/Redicious/GW2PSAM/master/Gw2-AddonsManager.ps1"
     mydebug "getting remote code from $url"
     $RemoteBin = (Invoke-WebRequest -uri $URL -UseBasicParsing).Content
         $LocalBinPath = $AppDataPath + (Split-Path $URL -leaf)

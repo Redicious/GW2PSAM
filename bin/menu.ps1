@@ -12,7 +12,7 @@ function Invoke-Menu {
 \    \_\  \        //       \/    |    \/ /_/ / /_/ (  <_> )   |  \  Y Y  \/ __ \|   |  \/ __ \_/ /_/  >  ___/|  | \/
  \______  /\__/\  / \_______ \____|__  /\____ \____ |\____/|___|  /__|_|  (____  /___|  (____  /\___  / \___  >__|   
         \/      \/          \/       \/      \/    \/           \/      \/     \/     \/     \//_____/      \/       
-    by Redicious           https://gitlab.deep-space-nomads.com/Redicious/guild-wars-2-addons-manager/`r`n                           v$Version $(if($exe){"(.exe)"})`r`n" -BackgroundColor Black -ForegroundColor Red 
+    by Redicious           https://github.com/Redicious/GW2PSAM/`r`n                           v$Version $(if($exe){"(.exe)"})`r`n" -BackgroundColor Black -ForegroundColor Red 
         }
         else {
             Write-Host "Welcome to
@@ -22,7 +22,7 @@ function Invoke-Menu {
 \    \_\  \        //       \  Addonmanager
  \______  /\__/\  / \_______ \    by Redicious
         \/      \/          \/       v$Version $(if($exe){"(.exe)"})
- https://gitlab.deep-space-nomads.com/Redicious/guild-wars-2-addons-manager/`r`n" -BackgroundColor Black -ForegroundColor Red 
+ https://github.com/Redicious/GW2PSAM/`r`n" -BackgroundColor Black -ForegroundColor Red 
         } 
         
         if($PSVersionTable.psversion.major -lt 7)

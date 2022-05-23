@@ -15,7 +15,7 @@ If ($PSBoundParameters["Debug"]) {
     $DebugPreference = "Continue"
 }
 
-$Version = "1.7.1.0" #Major.Minor.Build.Revision
+$Version = "1.8.0.0" #Major.Minor.Build.Revision
 
 function mylog
 {
@@ -60,6 +60,7 @@ $UseParallel = ![bool]($NoParallelExec)
 $ForegroundcolorStatusInformation = "DarkGray"
 $MenuHeadColor = "Cyan"
 $MenuTextColor = "White"
+
 # bootstrap.ps1
 if(!$IgnoreRemoteUpdate)
 {
@@ -69,7 +70,7 @@ if(!$IgnoreRemoteUpdate)
     }
 
     
-    $URL = "https://gitlab.deep-space-nomads.com/Redicious/guild-wars-2-addons-manager/-/raw/master/Gw2-AddonsManager.ps1"
+    $URL = "https://raw.githubusercontent.com/Redicious/GW2PSAM/master/Gw2-AddonsManager.ps1"
     mydebug "getting remote code from $url"
     $RemoteBin = (Invoke-WebRequest -uri $URL -UseBasicParsing).Content
         $LocalBinPath = $AppDataPath + (Split-Path $URL -leaf)
@@ -204,6 +205,7 @@ if($help){
     Write-HelpPage -NoPause
     Return
 }
+
 # functions.ps1
 # general functions
 function Copy-Object {
@@ -332,6 +334,7 @@ function ask {
         }           
     } While (1) # yeah, bad style. Judge me
 }
+
 # vars.xml
 $XMLVars = [XML]@'
 <xml>
@@ -770,6 +773,7 @@ function Update-MyAddonMeta {
 }
 
 #Update-MyAddonMeta
+
 # vars.ps1
 # if($null -eq (Get-Variable -scope script -name 'XMLVars' -ValueOnly -ErrorAction SilentlyContinue))
 # {
@@ -995,6 +999,7 @@ else {
 }
 
 $GVars = $null
+
 # menu.ps1
 # Printing menu and all related stuff
 
@@ -1010,7 +1015,7 @@ function Invoke-Menu {
 \    \_\  \        //       \/    |    \/ /_/ / /_/ (  <_> )   |  \  Y Y  \/ __ \|   |  \/ __ \_/ /_/  >  ___/|  | \/
  \______  /\__/\  / \_______ \____|__  /\____ \____ |\____/|___|  /__|_|  (____  /___|  (____  /\___  / \___  >__|   
         \/      \/          \/       \/      \/    \/           \/      \/     \/     \/     \//_____/      \/       
-    by Redicious           https://gitlab.deep-space-nomads.com/Redicious/guild-wars-2-addons-manager/`r`n                           v$Version $(if($exe){"(.exe)"})`r`n" -BackgroundColor Black -ForegroundColor Red 
+    by Redicious           https://github.com/Redicious/GW2PSAM/`r`n                           v$Version $(if($exe){"(.exe)"})`r`n" -BackgroundColor Black -ForegroundColor Red 
         }
         else {
             Write-Host "Welcome to
@@ -1020,7 +1025,7 @@ function Invoke-Menu {
 \    \_\  \        //       \  Addonmanager
  \______  /\__/\  / \_______ \    by Redicious
         \/      \/          \/       v$Version $(if($exe){"(.exe)"})
- https://gitlab.deep-space-nomads.com/Redicious/guild-wars-2-addons-manager/`r`n" -BackgroundColor Black -ForegroundColor Red 
+ https://github.com/Redicious/GW2PSAM/`r`n" -BackgroundColor Black -ForegroundColor Red 
         } 
         
         if($PSVersionTable.psversion.major -lt 7)
@@ -1219,6 +1224,7 @@ function Invoke-GW2 {
         }
     }       
 }
+
 # addon_functions.ps1
 # functions regarding addons install/uninstall etc
 function Set-Addon {
