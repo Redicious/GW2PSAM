@@ -402,7 +402,7 @@ $XMLVars = [XML]@'
         </addon>
         <addon id="4">    
             <add key="Name" value="Arc DPS (dx9)"/>
-            <add key="DownloadURL" value="https://www.deltaconnected.com/arcdps/x64/d3d9.dll"/>
+            <add key="DownloadURL" value="https://www.deltaconnected.com/arcdps/x64/d3d11.dll"/>
             <add key="UpstreamVersion" value='{{DownloadURL}}' type="WebHeaderLastModified"/>
             <add key="DownloadTo" value="{{GW2Dir}}bin64\d3d9.dll"/>
             <add key="RequiresAppClosed" value="{{GW2Exec}}"/>
@@ -543,7 +543,7 @@ $XMLVars = [XML]@'
         </addon>
         <addon id="40">    
             <add key="Name" value="Arc DPS (dx11)"/>
-            <add key="DownloadURL" value="https://www.deltaconnected.com/arcdps/x64/d3d9.dll"/>
+            <add key="DownloadURL" value="https://www.deltaconnected.com/arcdps/x64/d3d11.dll"/>
             <add key="UpstreamVersion" value='{{DownloadURL}}' type="WebHeaderLastModified"/>
             <add key="DownloadTo" value="{{ArcDPSAddons}}gw2addon_arcdps.dll"/>
             <add key="RequiresAppClosed" value="{{GW2Exec}}"/>
@@ -1448,11 +1448,26 @@ function DownloadFile {
     }
     write-host "Downloading $($from) -> $($to)" -ForegroundColor $ForegroundcolorStatusInformation
     write-verbose "Invoke-WebRequest -uri $($from) -outfile $($to) -usebasicparsing -erroraction stop"
-    Invoke-WebRequest -uri $from -outfile $to -usebasicparsing -erroraction stop
-    start-sleep -milliseconds 100 # I/O (especially with antivirus) is sometimes weird, too lazy to check for handles - YIELD!
-    if (!(test-path $addon.DownloadTo)) {
-        Throw "The download for from $from failed - maybe the payload was null?"
+    try{
+        Invoke-WebRequest -uri $from -outfile $to -usebasicparsing -erroraction stop -verbose
+    }
+    catch 
+    {
+        Write-Error $_
+        pause
+        Throw $_
+    }
+    
+    $i = 1
+    While(!(test-path $to) -and $i -le 10) 
+    {
+        start-sleep -milliseconds 100*$i 
+        $i++   
     }     
+    if(!(test-path $to))
+    {
+        Throw "The download for from $from failed - maybe the payload was null?"
+    }
 }
 
 

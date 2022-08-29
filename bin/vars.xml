@@ -63,7 +63,7 @@
         </addon>
         <addon id="4">    
             <add key="Name" value="Arc DPS (dx9)"/>
-            <add key="DownloadURL" value="https://www.deltaconnected.com/arcdps/x64/d3d9.dll"/>
+            <add key="DownloadURL" value="https://www.deltaconnected.com/arcdps/x64/d3d11.dll"/>
             <add key="UpstreamVersion" value='{{DownloadURL}}' type="WebHeaderLastModified"/>
             <add key="DownloadTo" value="{{GW2Dir}}bin64\d3d9.dll"/>
             <add key="RequiresAppClosed" value="{{GW2Exec}}"/>
@@ -204,7 +204,7 @@
         </addon>
         <addon id="40">    
             <add key="Name" value="Arc DPS (dx11)"/>
-            <add key="DownloadURL" value="https://www.deltaconnected.com/arcdps/x64/d3d9.dll"/>
+            <add key="DownloadURL" value="https://www.deltaconnected.com/arcdps/x64/d3d11.dll"/>
             <add key="UpstreamVersion" value='{{DownloadURL}}' type="WebHeaderLastModified"/>
             <add key="DownloadTo" value="{{ArcDPSAddons}}gw2addon_arcdps.dll"/>
             <add key="RequiresAppClosed" value="{{GW2Exec}}"/>

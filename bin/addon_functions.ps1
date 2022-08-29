@@ -220,11 +220,26 @@ function DownloadFile {
     }
     write-host "Downloading $($from) -> $($to)" -ForegroundColor $ForegroundcolorStatusInformation
     write-verbose "Invoke-WebRequest -uri $($from) -outfile $($to) -usebasicparsing -erroraction stop"
-    Invoke-WebRequest -uri $from -outfile $to -usebasicparsing -erroraction stop
-    start-sleep -milliseconds 100 # I/O (especially with antivirus) is sometimes weird, too lazy to check for handles - YIELD!
-    if (!(test-path $addon.DownloadTo)) {
-        Throw "The download for from $from failed - maybe the payload was null?"
+    try{
+        Invoke-WebRequest -uri $from -outfile $to -usebasicparsing -erroraction stop -verbose
+    }
+    catch 
+    {
+        Write-Error $_
+        pause
+        Throw $_
+    }
+    
+    $i = 1
+    While(!(test-path $to) -and $i -le 10) 
+    {
+        start-sleep -milliseconds 100*$i 
+        $i++   
     }     
+    if(!(test-path $to))
+    {
+        Throw "The download for from $from failed - maybe the payload was null?"
+    }
 }
 
 
