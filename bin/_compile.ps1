@@ -21,7 +21,7 @@ if (!$NoExe) {
             Write-Warning "You need the powershell module ""ps2exe"" to compile an exe. `r`nOnly the script will be compiled.`r`nIf you want to create the exe you need to install the module (probably as administrator).`r`nYou can install the module with ""Install-Module ps2exe""."
             $NoExe = $True
         }
-        
+        Import-Module ps2exe
     }
 }
 
@@ -64,7 +64,8 @@ try {
         $Result -join "`r`n" | Set-Content -path $TempFile -ErrorAction STOP
         
         # compile the exe from the temp file
-        Invoke-ps2exe $TempFile ..\Gw2-AddonsManager.exe
+        "Invoke-ps2exe -inputFile $TempFile -outputFile ..\Gw2-AddonsManager.exe"
+        Invoke-ps2exe -inputFile $TempFile -outputFile ..\Gw2-AddonsManager.exe
     }
 
     if($RunAfterCompilation)
