@@ -207,7 +207,7 @@ else {
         $script:addons | Where-Object { $_.id -eq $id } | add-member -type NoteProperty -name "Steps" -value @()
         foreach ($step in (Select-Xml -Xml $XMLVars -XPath "/xml/addons/addon[@id='$id']/Step").node) {
             $objStep = new-object system.object
-            foreach ($attr in @("IfIDs", "IfNotIDs", "from", "to", "level", "action")) {
+            foreach ($attr in @("IfIDs", "IfNotIDs", "from", "to", "level", "action", "user", "repo", "version", "file")) {
                 if ($step.$attr) {
                     $objStep | add-member -type NoteProperty -name $attr -value (parsevalue -value ($step.$attr) -Addonid $id)
                 }
