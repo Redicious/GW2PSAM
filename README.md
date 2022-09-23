@@ -27,12 +27,12 @@ This might need changes to your Execution Policy - more infos here: https://docs
 2. Run the Gw2-AddonsManager.ps1 in a PowerShell
 3. Call the manager via "GW2AddonManager"
 
+D. Download the .exe and use it
 (DEPRECATED, maybe I'll provide it again at a later point again)
-# D. Download the .exe and use it 
-# Note: This might make trouble with your antivirus... But you can whitelist the .exe
-# Note2: has no autoupdate feature yet
-# 1. Download the .exe
-# 2. Start the .exe
+~~Note: This might make trouble with your antivirus... But you can whitelist the .exe~~
+~~Note2: has no autoupdate feature yet~~
+~~1. Download the .exe~~
+~~2. Start the .exe~~
 
 E. Clone the Repo
 Note: I don't go into detail how Git works and what stuff could go wrong - google is your friend.
