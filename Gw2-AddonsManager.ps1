@@ -1248,7 +1248,7 @@ function Set-Addon {
     $InstallAddons = @()
 
     $Addons | Where-Object { $_.enabled -eq $false -and $_.InstalledVersion -notin '', $null } | ForEach-Object{ $UninstallAddons += $_ }
-    $Addons | Where-Object { $_.enabled -eq $true -and $_.state -ne "Error" -and ($_.InstalledVersion -in '', $null -or $_.InstalledVersion -ne $_.UpstreamVersion) } | ForEach-Object{ $InstallAddons += $_ }
+    $Addons | Where-Object { $_.enabled -eq $true -and $_.state -ne "Error" -and ($_.InstalledVersion -in '', $null -or ($_.InstalledVersion -ne $_.UpstreamVersion -and $_.InstalledVersion -ne ($_.UpstreamVersion -replace '^v'))) } | ForEach-Object{ $InstallAddons += $_ }
 
     $AffectedIDs = @()
     $UninstallAddons.ID | ForEach-Object{ $AffectedIDs += $_ }
