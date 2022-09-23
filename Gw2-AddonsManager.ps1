@@ -15,7 +15,7 @@ If ($PSBoundParameters["Debug"]) {
     $DebugPreference = "Continue"
 }
 
-$Version = "1.8.1.0" #Major.Minor.Build.Revision
+$Version = "1.9.0.0" #Major.Minor.Build.Revision
 
 function mylog
 {
@@ -348,6 +348,9 @@ $XMLVars = [XML]@'
     <add key="LocalBinPath" value="{{AddonTemp}}Gw2-AddonsManager.ps1"/>
     <add key="LogFile" value=""/>
     
+    <!-- Stuff -->
+    <add key="GitHubVersionRXP" value="releases/(download|expanded_assets)/([^\s\/&quot;]*)&quot;"/>
+
     <!-- TacO stuff --> 
     <add key="TacODir" value='{{GW2Dir}}TacO\'/><!-- will be configurable.. at some point -->
     <add key="TacOExec" value='{{TacODir}}GW2TacO.exe'/>
@@ -370,26 +373,26 @@ $XMLVars = [XML]@'
     -->        
         <addon id="1">
             <add key="Name" value="GW2Radial (DX9) (outdated)"/>
-            <add key="DownloadURL" value='("https://github.com" + (((Invoke-WebRequest https://github.com/Friendly0Fire/GW2Radial/releases/tag/v2.1.3 -UseBasicParsing).content -split "`r`n" | select-string -pattern "`"\/.*GW2Radial\.zip`"" -AllMatches).matches.groups[0].value -replace """"));' type="ScriptBlock"/>
-            <add key="UpstreamVersion" value='("{{DownloadURL}}" | sls -pattern "download/(.*)/GW2Radial.zip" -allmatches).Matches.Groups[1].value' type="ScriptBlock"/>
+            <add key="GitHubU" value="Friendly0Fire"/>
+            <add key="GitHubR" value="GW2Radial"/>
+            <add key="UpstreamVersion" value="v2.1.3"/>
             <add key="Website" value="https://github.com/Friendly0Fire/GW2Radial"/>
             <add key="RequiresAppClosed" value="{{GW2Exec}}"/>
             <add key="DownloadTo" value="{{AddonTemp}}{{AddonName}}\GW2Radial.zip"/>
-            <add key="UnzipTo" value="{{AddonTemp}}{{AddonName}}_Unzip\"/>
-            <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}" cleanup="1"/>
+            <add key="UnzipTo" value="{{AddonTemp}}{{AddonName}}_Unzip\"/>          
+            <Step level="1" action="downloadGithub" user="{{GitHubU}}" repo="{{GitHubR}}" version="{{UpstreamVersion}}" file="GW2Radial\.zip" to="{{DownloadTo}}" cleanup="1"/>
             <Step level="2" action="unzip" from="{{DownloadTo}}" to="{{UnzipTo}}" cleanup="1"/>
-            <Step level="3" action="move" from="{{UnzipTo}}gw2radial\gw2addon_gw2radial.dll" to="{{GW2Dir}}bin64\d3d9_chainload.dll" IfIDs="4"/>
-            <Step level="3" action="move" from="{{UnzipTo}}gw2radial\gw2addon_gw2radial.dll" to="{{GW2Dir}}bin64\d3d9.dll" IfNotIDs="4"/>
+            <Step level="3" action="move" from="{{UnzipTo}}\{{GitHubR}}\gw2addon_gw2radial.dll" to="{{GW2Dir}}bin64\d3d9_chainload.dll"  IfIDs="4"/>
+            <Step level="3" action="move" from="{{UnzipTo}}\{{GitHubR}}\gw2addon_gw2radial.dll" to="{{GW2Dir}}bin64\d3d9.dll"  IfNotIDs="4"/>
         </addon>
         <addon id="2">
             <add key="Name" value="TacO"/>
             <add key="GitHubU" value="BoyC"/>
             <add key="GitHubR" value="GW2TacO"/>
-            <add key="DownloadURL" value="'https://github.com'+((((Invoke-WebRequest https://github.com/{{GitHubU}}/{{GitHubR}}/releases/latest/ -UseBasicParsing).content | select-string -pattern '(\/{{GitHubU}}\/.*\.zip)' -AllMatches).matches[0].groups[1].value))"  type="ScriptBlock"/>
-            <add key="UpstreamVersion" value='("{{DownloadURL}}" | sls -pattern "download\/(.*)\/.*.zip" -allmatches).Matches.Groups[1].value' type="ScriptBlock"/>
+            <add key="UpstreamVersion" value="(((Invoke-webrequest 'https://github.com/{{GitHubU}}/{{GitHubR}}/releases/latest/' -usebasicparsing).content | sls -pattern '{{GitHubVersionRXP}}' -allmatches).matches.groups[2]).value" type="ScriptBlock"/>
             <add key="DownloadTo" value="{{AddonTemp}}{{AddonName}}\Taco.zip"/>
             <add key="RequiresAppClosed" value="{{TacOExec}}"/>
-            <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}" cleanup="1"/>
+            <Step level="1" action="downloadGithub" user="{{GitHubU}}" repo="{{GitHubR}}" version="{{UpstreamVersion}}" file="GW2TacO_[\S^\/]+.zip" to="{{DownloadTo}}" cleanup="1"/>
             <Step level="2" action="Unzip" from="{{DownloadTo}}" to="{{TacODir}}"/>
         </addon>
         <addon id="3">
@@ -401,6 +404,7 @@ $XMLVars = [XML]@'
             <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}"/>
         </addon>
         <addon id="4">    
+            <add key="Deprecated" value="True"/>
             <add key="Name" value="Arc DPS (dx9)"/>
             <add key="DownloadURL" value="https://www.deltaconnected.com/arcdps/x64/d3d11.dll"/>
             <add key="UpstreamVersion" value='{{DownloadURL}}' type="WebHeaderLastModified"/>
@@ -409,48 +413,56 @@ $XMLVars = [XML]@'
             <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}"/>
         </addon>
         <addon id="5">
+            <add key="Deprecated" value="True"/>
             <add key="Name" value="Arc DPS Killproof.me (dx9)"/>
-            <add key="DownloadURL" value="'https://github.com'+((((Invoke-WebRequest https://github.com/knoxfighter/arcdps-killproof.me-plugin/releases/latest/ -UseBasicParsing).content | select-string -pattern '(\/knoxfighter.*d3d9_arcdps_killproof_me\.dll)' -AllMatches).matches[0].groups[1].value))"  type="ScriptBlock"/>
-            <add key="UpstreamVersion" value='("{{DownloadURL}}" | sls -pattern "download\/v(.*)\/d3d9" -allmatches).Matches.Groups[1].value' type="ScriptBlock"/>
+            <add key="GitHubU" value="knoxfighter"/>
+            <add key="GitHubR" value="arcdps-killproof.me-plugin"/>
+            <add key="UpstreamVersion" value="(((Invoke-webrequest 'https://github.com/{{GitHubU}}/{{GitHubR}}/releases/latest/' -usebasicparsing).content | sls -pattern '{{GitHubVersionRXP}}' -allmatches).matches.groups[2]).value" type="ScriptBlock"/>
             <add key="DownloadTo" value="{{GW2Dir}}bin64\d3d9_arcdps_killproof_me.dll"/>
             <add key="RequiresAppClosed" value="{{GW2Exec}}"/>
             <add key="RequiresAddon" value="4"/>
-            <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}"/>
+            <Step level="1" action="downloadGithub" user="{{GitHubU}}" repo="{{GitHubR}}" version="{{UpstreamVersion}}" file="d3d9_arcdps_killproof_me\.dll" to="{{DownloadTo}}" cleanup="1"/>
         </addon>
         <addon id="6">
+            <add key="Deprecated" value="True"/>
             <add key="Name" value="Arc DPS SCT (Scrolling Combat Text) (dx9)"/>
-            <add key="DownloadURL" value="'https://github.com'+((((Invoke-WebRequest https://github.com/Artenuvielle/GW2-SCT/releases/latest/ -UseBasicParsing).content | select-string -pattern '(\/Artenuvielle.*d3d9_arcdps_sct\.dll)' -AllMatches).matches[0].groups[1].value))"  type="ScriptBlock"/>
-            <add key="UpstreamVersion" value='("{{DownloadURL}}" | sls -pattern "download\/(.*)\/d3d9" -allmatches).Matches.Groups[1].value' type="ScriptBlock"/>
+            <add key="GitHubU" value="Artenuvielle"/>
+            <add key="GitHubR" value="GW2-SCT"/>
+            <add key="UpstreamVersion" value="(((Invoke-webrequest 'https://github.com/{{GitHubU}}/{{GitHubR}}/releases/latest/' -usebasicparsing).content | sls -pattern '{{GitHubVersionRXP}}' -allmatches).matches.groups[2]).value" type="ScriptBlock"/>
             <add key="DownloadTo" value="{{GW2Dir}}bin64\d3d9_arcdps_sct.dll"/>
             <add key="RequiresAppClosed" value="{{GW2Exec}}"/>
             <add key="RequiresAddon" value="4"/>
-            <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}"/>
+            <Step level="1" action="downloadGithub" user="{{GitHubU}}" repo="{{GitHubR}}" version="{{UpstreamVersion}}" file="d3d9_arcdps_sct\.dll" to="{{DownloadTo}}" cleanup="1"/>
         </addon>
         <addon id="7">
+            <add key="Deprecated" value="True"/>
             <add key="Name" value="Arc DPS Boon Table (dx9)"/>
-            <add key="DownloadURL" value="'https://github.com'+((((Invoke-WebRequest https://github.com/knoxfighter/GW2-ArcDPS-Boon-Table/releases/latest/ -UseBasicParsing).content | select-string -pattern '(\/knoxfighter.*d3d9_arcdps_table\.dll)' -AllMatches).matches[0].groups[1].value))"  type="ScriptBlock"/>
-            <add key="UpstreamVersion" value='("{{DownloadURL}}" | sls -pattern "download\/v(.*)\/d3d9" -allmatches).Matches.Groups[1].value' type="ScriptBlock"/>
+            <add key="GitHubU" value="knoxfighter"/>
+            <add key="GitHubR" value="GW2-ArcDPS-Boon-Table"/>
+            <add key="UpstreamVersion" value="(((Invoke-webrequest 'https://github.com/{{GitHubU}}/{{GitHubR}}/releases/latest/' -usebasicparsing).content | sls -pattern '{{GitHubVersionRXP}}' -allmatches).matches.groups[2]).value" type="ScriptBlock"/>
             <add key="DownloadTo" value="{{GW2Dir}}bin64\d3d9_arcdps_table.dll"/>
             <add key="RequiresAppClosed" value="{{GW2Exec}}"/>
             <add key="RequiresAddon" value="4"/>
-            <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}"/>
+            <Step level="1" action="downloadGithub" user="{{GitHubU}}" repo="{{GitHubR}}" version="{{UpstreamVersion}}" file="d3d9_arcdps_table\.dll" to="{{DownloadTo}}"/>
         </addon>
         <addon id="8">
             <add key="Name" value="Arc DPS Healing Stats (dx9)"/>
-            <add key="DownloadURL" value="'https://github.com'+((((Invoke-WebRequest https://github.com/Krappa322/arcdps_healing_stats/releases/latest/ -UseBasicParsing).content | select-string -pattern '(\/Krappa322.*arcdps_healing_stats\.dll)' -AllMatches).matches[0].groups[1].value))"  type="ScriptBlock"/>
-            <add key="UpstreamVersion" value='("{{DownloadURL}}" | sls -pattern "download\/v(.*)\/arcdps_healing_stats" -allmatches).Matches.Groups[1].value' type="ScriptBlock"/>
+            <add key="GitHubU" value="Krappa322"/>
+            <add key="GitHubR" value="arcdps_healing_stats"/>
+            <add key="UpstreamVersion" value="(((Invoke-webrequest 'https://github.com/{{GitHubU}}/{{GitHubR}}/releases/latest/' -usebasicparsing).content | sls -pattern '{{GitHubVersionRXP}}' -allmatches).matches.groups[2]).value" type="ScriptBlock"/>
             <add key="DownloadTo" value="{{GW2Dir}}bin64\arcdps_healing_stats.dll"/>
             <add key="RequiresAppClosed" value="{{GW2Exec}}"/>
             <add key="RequiresAddon" value="4"/>
-            <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}"/>
+            <Step level="1" action="downloadGithub" user="{{GitHubU}}" repo="{{GitHubR}}" version="{{UpstreamVersion}}" file="arcdps_healing_stats\.dll" to="{{DownloadTo}}"/>
         </addon>
         <addon id="10">
             <add key="Name" value="Blish-HUD"/>
-            <add key="DownloadURL" value="'https://github.com'+((((Invoke-WebRequest https://github.com/blish-hud/Blish-HUD/releases/latest/ -UseBasicParsing).content | select-string -pattern '(\/blish-hud.*Blish\.HUD.*.zip)' -AllMatches).matches[0].groups[1].value))"  type="ScriptBlock"/>
-            <add key="UpstreamVersion" value='("{{DownloadURL}}" | sls -pattern "download\/v(.*)\/Blish\.HUD\." -allmatches).Matches.Groups[1].value' type="ScriptBlock"/>
-            <add key="DownloadTo" value="'{{AddonTemp}}{{AddonName}}\'+('{{DownloadURL}}' | split-path -Leaf)" type="ScriptBlock"/>
+            <add key="GitHubU" value="blish-hud"/>
+            <add key="GitHubR" value="Blish-HUD"/>
+            <add key="UpstreamVersion" value="(((Invoke-webrequest 'https://github.com/{{GitHubU}}/{{GitHubR}}/releases/latest/' -usebasicparsing).content | sls -pattern '{{GitHubVersionRXP}}' -allmatches).matches.groups[2]).value" type="ScriptBlock"/>
+            <add key="DownloadTo" value="'{{AddonTemp}}{{AddonName}}\{{AddonName}}.zip'" type="ScriptBlock"/>
             <add key="RequiresAppClosed" value="{{GW2Exec}}"/>
-            <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}" cleanup="1"/>
+            <Step level="1" action="downloadGithub" user="{{GitHubU}}" repo="{{GitHubR}}" version="{{UpstreamVersion}}" file="Blish\.HUD.*.zip" to="{{DownloadTo}}" cleanup="1"/>
             <Step level="2" action="Unzip" from="{{DownloadTo}}" to="{{BlishDir}}"/>
         </addon>
         <addon id="11">
@@ -466,12 +478,12 @@ $XMLVars = [XML]@'
             <add key="Name" value="Blish-HUD Hero Markers"/>
             <add key="GitHubU" value="QuitarHero"/>
             <add key="GitHubR" value="Heros-Marker-Pack"/>
-            <add key="DownloadURL" value="'https://github.com'+((((Invoke-WebRequest https://github.com/{{GitHubU}}/{{GitHubR}}/releases/latest/ -UseBasicParsing).content | select-string -pattern '(\/{{GitHubU}}\/.*\.zip)' -AllMatches).matches[0].groups[1].value))"  type="ScriptBlock"/>
-            <add key="UpstreamVersion" value='("{{DownloadURL}}" | sls -pattern "download\/v(.*)\/.*.zip" -allmatches).Matches.Groups[1].value' type="ScriptBlock"/>
-            <add key="DownloadTo" value="'{{AddonTemp}}{{AddonName}}\'+('{{DownloadURL}}' | split-path -Leaf)" type="ScriptBlock"/>
+            <add key="UpstreamVersion" value="(((Invoke-webrequest 'https://github.com/{{GitHubU}}/{{GitHubR}}/releases/latest/' -usebasicparsing).content | sls -pattern '{{GitHubVersionRXP}}' -allmatches).matches.groups[2]).value" type="ScriptBlock"/>
+            <!--add key="UpstreamVersion" value="((Invoke-webrequest 'https://api.github.com/repos/{{GitHubU}}/{{GitHubR}}/releases/latest' -usebasicparsing).content | convertfrom-json).tag_name" type="ScriptBlock"/-->
+            <add key="DownloadTo" value="'{{AddonTemp}}{{AddonName}}\{{AddonName}}.zip'" type="ScriptBlock"/>
             <add key="RequiresAppClosed" value="{{BlishExec}}"/>
             <add key="RequiresAddon" value="10"/>
-            <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}" cleanup="1"/>
+            <Step level="1" action="downloadGithub" user="{{GitHubU}}" repo="{{GitHubR}}" version="{{UpstreamVersion}}" file="/.*Pack\.zip" to="{{DownloadTo}}" cleanup="1"/>
             <Step level="2" action="Unzip" from="{{DownloadTo}}" to="{{BlishUDir}}markers\{{Name}}\"/>
         </addon>
         <addon id="13">
@@ -487,23 +499,21 @@ $XMLVars = [XML]@'
             <add key="Name" value="Blish-HUD Tehs HP Trails"/>
             <add key="GitHubU" value="xrandox"/>
             <add key="GitHubR" value="TehsTrails"/>
-            <add key="DownloadURL" value="'https://github.com'+((((Invoke-WebRequest https://github.com/{{GitHubU}}/{{GitHubR}}/releases/latest/ -UseBasicParsing).content | select-string -pattern '(\/{{GitHubU}}\/.*\.taco)' -AllMatches).matches[0].groups[1].value))"  type="ScriptBlock"/>
-            <add key="UpstreamVersion" value='("{{DownloadURL}}" | sls -pattern "download\/v(.*)\/.*.taco" -allmatches).Matches.Groups[1].value' type="ScriptBlock"/>
-            <add key="DownloadTo" value="'{{BlishUDir}}markers\'+('{{DownloadURL}}' | split-path -Leaf)" type="ScriptBlock"/>
+            <add key="UpstreamVersion" value="(((Invoke-webrequest 'https://github.com/{{GitHubU}}/{{GitHubR}}/releases/latest/' -usebasicparsing).content | sls -pattern '{{GitHubVersionRXP}}' -allmatches).matches.groups[2]).value" type="ScriptBlock"/>
+            <add key="DownloadTo" value="{{BlishUDir}}markers\TehsTrails.taco"/>
             <add key="RequiresAppClosed" value="{{BlishExec}}"/>
             <add key="RequiresAddon" value="10"/>
-            <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}" />
+            <Step level="1" action="downloadGithub" user="{{GitHubU}}" repo="{{GitHubR}}" version="{{UpstreamVersion}}" file=".*\.taco" to="{{DownloadTo}}"/>
         </addon>
         <addon id="20">
             <add key="Name" value="Addon Loader Core"/>
             <add key="GitHubU" value="gw2-addon-loader"/>
             <add key="GitHubR" value="loader-core"/>
-            <add key="DownloadURL" value="'https://github.com'+((((Invoke-WebRequest https://github.com/{{GitHubU}}/{{GitHubR}}/releases/latest/ -UseBasicParsing).content | select-string -pattern '(\/{{GitHubU}}\/.*\.zip)' -AllMatches).matches[0].groups[1].value))"  type="ScriptBlock"/>
-            <add key="UpstreamVersion" value='("{{DownloadURL}}" | sls -pattern "download\/v(.*)\/.*.zip" -allmatches).Matches.Groups[1].value' type="ScriptBlock"/>
-            <add key="DownloadTo" value="'{{AddonTemp}}{{AddonName}}\'+('{{DownloadURL}}' | split-path -Leaf)" type="ScriptBlock"/>
-            <add key="UnzipTo" value="'{{AddonTemp}}{{AddonName}}_Unzip\'" type="ScriptBlock"/>
+            <add key="UpstreamVersion" value="(((Invoke-webrequest 'https://github.com/{{GitHubU}}/{{GitHubR}}/releases/latest/' -usebasicparsing).content | sls -pattern '{{GitHubVersionRXP}}' -allmatches).matches.groups[2]).value" type="ScriptBlock"/>
+            <add key="DownloadTo" value="{{AddonTemp}}{{AddonName}}\{{GitHubR}}.zip" />
+            <add key="UnzipTo" value="{{AddonTemp}}{{AddonName}}_Unzip\"/>
             <add key="RequiresAppClosed" value="{{GW2Exec}}"/>
-            <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}" cleanup="1" />
+            <Step level="1" action="downloadGithub" user="{{GitHubU}}" repo="{{GitHubR}}" version="{{UpstreamVersion}}" file="\/loader_core_.*\.zip" to="{{DownloadTo}}" cleanup="1"/>
             <Step level="2" action="Unzip" from="{{DownloadTo}}" to="{{UnzipTo}}" cleanup="1"/>
             <Step level="3" action="move" from="{{UnzipTo}}addonLoader.dll" to="{{GW2Dir}}addonLoader.dll"/>
             <Step level="4" action="move" from="{{UnzipTo}}d3d11.dll" to="{{GW2Dir}}d3d11.dll"/>
@@ -514,13 +524,12 @@ $XMLVars = [XML]@'
             <add key="Name" value="d3d9_wrapper"/>
             <add key="GitHubU" value="gw2-addon-loader"/>
             <add key="GitHubR" value="d3d9_wrapper"/>
-            <add key="DownloadURL" value="'https://github.com'+((((Invoke-WebRequest https://github.com/{{GitHubU}}/{{GitHubR}}/releases/latest/ -UseBasicParsing).content | select-string -pattern '(\/{{GitHubU}}\/.*\.zip)' -AllMatches).matches[0].groups[1].value))"  type="ScriptBlock"/>
-            <add key="UpstreamVersion" value='("{{DownloadURL}}" | sls -pattern "download\/v(.*)\/.*.zip" -allmatches).Matches.Groups[1].value' type="ScriptBlock"/>
-            <add key="DownloadTo" value="'{{AddonTemp}}{{AddonName}}\'+('{{DownloadURL}}' | split-path -Leaf)" type="ScriptBlock"/>
+            <add key="UpstreamVersion" value="(((Invoke-webrequest 'https://github.com/{{GitHubU}}/{{GitHubR}}/releases/latest/' -usebasicparsing).content | sls -pattern '{{GitHubVersionRXP}}' -allmatches).matches.groups[2]).value" type="ScriptBlock"/>
+            <add key="DownloadTo" value="{{AddonTemp}}{{AddonName}}\{{GitHubR}}.zip" />
             <add key="UnzipTo" value="'{{AddonTemp}}{{AddonName}}_Unzip\'" type="ScriptBlock"/>
             <add key="RequiresAppClosed" value="{{GW2Exec}}"/>
             <add key="RequiresAddon" value="20"/>
-            <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}" cleanup="1"/>
+            <Step level="1" action="downloadGithub" user="{{GitHubU}}" repo="{{GitHubR}}" version="{{UpstreamVersion}}" file="\/d3d9_wrapper_.*\.zip" to="{{DownloadTo}}" cleanup="1"/>
             <Step level="2" action="Unzip" from="{{DownloadTo}}" to="{{UnzipTo}}" cleanup="1"/>
             <Step level="3" action="move" from="{{UnzipTo}}\{{GitHubR}}\gw2addon_d3d9_wrapper.dll" to="{{GW2Dir}}\addons\{{GitHubR}}\gw2addon_d3d9_wrapper.dll"/>            
             <Step level="4" action="move" from="{{UnzipTo}}\{{GitHubR}}\gw2addon_d3d9_wrapper.exp" to="{{GW2Dir}}\addons\{{GitHubR}}\gw2addon_d3d9_wrapper.exp"/>            
@@ -531,13 +540,12 @@ $XMLVars = [XML]@'
             <add key="Name" value="GW2Radial (DX11)"/>
             <add key="GitHubU" value="Friendly0Fire"/>
             <add key="GitHubR" value="GW2Radial"/>
-            <add key="DownloadURL" value='("https://github.com" + (((Invoke-WebRequest https://github.com/{{GitHubU}}/{{GitHubR}}/releases/latest/ -UseBasicParsing).content -split "`r`n" | select-string -pattern "`"\/.*GW2Radial\.zip`"" -AllMatches).matches.groups[0].value -replace """"));' type="ScriptBlock"/>
-            <add key="UpstreamVersion" value='("{{DownloadURL}}" | sls -pattern "download/v(.*)/GW2Radial.zip" -allmatches).Matches.Groups[1].value' type="ScriptBlock"/>
+            <add key="UpstreamVersion" value="(((Invoke-webrequest 'https://github.com/{{GitHubU}}/{{GitHubR}}/releases/latest/' -usebasicparsing).content | sls -pattern '{{GitHubVersionRXP}}' -allmatches).matches.groups[2]).value" type="ScriptBlock"/>
             <add key="RequiresAppClosed" value="{{GW2Exec}}"/>
             <add key="RequiresAddon" value="21"/>
             <add key="DownloadTo" value="{{AddonTemp}}{{AddonName}}\GW2Radial.zip"/>
             <add key="UnzipTo" value="{{AddonTemp}}{{AddonName}}_Unzip\"/>
-            <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}" cleanup="1"/>
+            <Step level="1" action="downloadGithub" user="{{GitHubU}}" repo="{{GitHubR}}" version="{{UpstreamVersion}}" file="GW2Radial\.zip" to="{{DownloadTo}}" cleanup="1"/>
             <Step level="2" action="unzip" from="{{DownloadTo}}" to="{{UnzipTo}}" cleanup="1"/>
             <Step level="3" action="move" from="{{UnzipTo}}\{{GitHubR}}\gw2addon_gw2radial.dll" to="{{GW2Dir}}\addons\{{GitHubR}}\gw2addon_gw2radial.dll"/>
         </addon>
@@ -554,57 +562,52 @@ $XMLVars = [XML]@'
             <add key="Name" value="Arc DPS Killproof.me (dx11)"/>
             <add key="GitHubU" value="knoxfighter"/>
             <add key="GitHubR" value="arcdps-killproof.me-plugin"/>
-            <add key="DownloadURL" value="'https://github.com'+((((Invoke-WebRequest https://github.com/{{GitHubU}}/{{GitHubR}}/releases/latest/ -UseBasicParsing).content | select-string -pattern '(\/{{GitHubU}}.*d3d9_arcdps_killproof_me\.dll)' -AllMatches).matches[0].groups[1].value))"  type="ScriptBlock"/>
-            <add key="UpstreamVersion" value='("{{DownloadURL}}" | sls -pattern "download\/v(.*)\/d3d9" -allmatches).Matches.Groups[1].value' type="ScriptBlock"/>
+            <add key="UpstreamVersion" value="(((Invoke-webrequest 'https://github.com/{{GitHubU}}/{{GitHubR}}/releases/latest/' -usebasicparsing).content | sls -pattern '{{GitHubVersionRXP}}' -allmatches).matches.groups[2]).value" type="ScriptBlock"/>
             <add key="DownloadTo" value="{{ArcDPSAddons}}d3d9_arcdps_killproof_me.dll"/>
             <add key="RequiresAppClosed" value="{{GW2Exec}}"/>
             <add key="RequiresAddon" value="40"/>
-            <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}"/>
+            <Step level="1" action="downloadGithub" user="{{GitHubU}}" repo="{{GitHubR}}" version="{{UpstreamVersion}}" file="d3d9_arcdps_killproof_me\.dll" to="{{DownloadTo}}"/>
         </addon>
         <addon id="42">
             <add key="Name" value="Arc DPS SCT (Scrolling Combat Text) (dx11)"/>
             <add key="GitHubU" value="Artenuvielle"/>
             <add key="GitHubR" value="GW2-SCT"/>
-            <add key="DownloadURL" value="'https://github.com'+((((Invoke-WebRequest https://github.com/{{GitHubU}}/{{GitHubR}}/releases/latest/ -UseBasicParsing).content | select-string -pattern '(\/{{GitHubU}}.*d3d9_arcdps_sct\.dll)' -AllMatches).matches[0].groups[1].value))"  type="ScriptBlock"/>
-            <add key="UpstreamVersion" value='("{{DownloadURL}}" | sls -pattern "download\/(.*)\/d3d9" -allmatches).Matches.Groups[1].value' type="ScriptBlock"/>
+            <add key="UpstreamVersion" value="(((Invoke-webrequest 'https://github.com/{{GitHubU}}/{{GitHubR}}/releases/latest/' -usebasicparsing).content | sls -pattern '{{GitHubVersionRXP}}' -allmatches).matches.groups[2]).value" type="ScriptBlock"/>
             <add key="DownloadTo" value="{{ArcDPSAddons}}d3d9_arcdps_sct.dll"/>
             <add key="RequiresAppClosed" value="{{GW2Exec}}"/>
             <add key="RequiresAddon" value="40"/>
-            <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}"/>
+            <Step level="1" action="downloadGithub" user="{{GitHubU}}" repo="{{GitHubR}}" version="{{UpstreamVersion}}" file="d3d9_arcdps_sct\.dll" to="{{DownloadTo}}"/>
         </addon>
         <addon id="43">
             <add key="Name" value="Arc DPS Boon Table (dx11)"/>
             <add key="GitHubU" value="knoxfighter"/>
             <add key="GitHubR" value="GW2-ArcDPS-Boon-Table"/>
-            <add key="DownloadURL" value="'https://github.com'+((((Invoke-WebRequest https://github.com/{{GitHubU}}/{{GitHubR}}/releases/latest/ -UseBasicParsing).content | select-string -pattern '(\/{{GitHubU}}.*d3d9_arcdps_table\.dll)' -AllMatches).matches[0].groups[1].value))"  type="ScriptBlock"/>
-            <add key="UpstreamVersion" value='("{{DownloadURL}}" | sls -pattern "download\/v(.*)\/d3d9" -allmatches).Matches.Groups[1].value' type="ScriptBlock"/>
+            <add key="UpstreamVersion" value="(((Invoke-webrequest 'https://github.com/{{GitHubU}}/{{GitHubR}}/releases/latest/' -usebasicparsing).content | sls -pattern '{{GitHubVersionRXP}}' -allmatches).matches.groups[2]).value" type="ScriptBlock"/>
             <add key="DownloadTo" value="{{ArcDPSAddons}}d3d9_arcdps_table.dll"/>
             <add key="RequiresAppClosed" value="{{GW2Exec}}"/>
             <add key="RequiresAddon" value="40"/>
-            <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}"/>
+            <Step level="1" action="downloadGithub" user="{{GitHubU}}" repo="{{GitHubR}}" version="{{UpstreamVersion}}" file="d3d9_arcdps_table\.dll" to="{{DownloadTo}}"/>
         </addon>
         <addon id="44">
             <add key="Name" value="Arc DPS Healing Stats (dx11)"/>
             <add key="GitHubU" value="Krappa322"/>
             <add key="GitHubR" value="arcdps_healing_stats"/>
-            <add key="DownloadURL" value="'https://github.com'+((((Invoke-WebRequest https://github.com/{{GitHubU}}/{{GitHubR}}/releases/latest/ -UseBasicParsing).content | select-string -pattern '(\/{{GitHubU}}.*arcdps_healing_stats\.dll)' -AllMatches).matches[0].groups[1].value))"  type="ScriptBlock"/>
-            <add key="UpstreamVersion" value='("{{DownloadURL}}" | sls -pattern "download\/v(.*)\/arcdps_healing_stats" -allmatches).Matches.Groups[1].value' type="ScriptBlock"/>
+            <add key="UpstreamVersion" value="(((Invoke-webrequest 'https://github.com/{{GitHubU}}/{{GitHubR}}/releases/latest/' -usebasicparsing).content | sls -pattern '{{GitHubVersionRXP}}' -allmatches).matches.groups[2]).value" type="ScriptBlock"/>
             <add key="DownloadTo" value="{{ArcDPSAddons}}arcdps_healing_stats.dll"/>
             <add key="RequiresAppClosed" value="{{GW2Exec}}"/>
             <add key="RequiresAddon" value="40"/>
-            <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}"/>
+            <Step level="1" action="downloadGithub" user="{{GitHubU}}" repo="{{GitHubR}}" version="{{UpstreamVersion}}" file="arcdps_healing_stats\.dll" to="{{DownloadTo}}"/>
         </addon>
         <addon id="45">
             <add key="Name" value="Arc DPS Blish-Hud plugin"/>
             <add key="GitHubU" value="blish-hud"/>
             <add key="GitHubR" value="arcdps-bhud"/>
-            <add key="DownloadURL" value='("https://github.com" + (((Invoke-WebRequest https://github.com/{{GitHubU}}/{{GitHubR}}/releases/latest/ -UseBasicParsing).content -split "`r`n" | select-string -pattern "`"\/.*-x86_64-pc-windows-gnu\.zip`"" -AllMatches).matches.groups[0].value -replace """"));' type="ScriptBlock"/>
-            <add key="UpstreamVersion" value='("{{DownloadURL}}" | sls -pattern "download/v(.*)/.*-x86_64-pc-windows-gnu\.zip" -allmatches).Matches.Groups[1].value' type="ScriptBlock"/>
+            <add key="UpstreamVersion" value="(((Invoke-webrequest 'https://github.com/{{GitHubU}}/{{GitHubR}}/releases/latest/' -usebasicparsing).content | sls -pattern '{{GitHubVersionRXP}}' -allmatches).matches.groups[2]).value" type="ScriptBlock"/>
             <add key="RequiresAppClosed" value="{{GW2Exec}}"/>
             <add key="RequiresAddon" value="4"/>
             <add key="DownloadTo" value="{{AddonTemp}}{{AddonName}}\x86_64-pc-windows-gnu.zip"/>
             <add key="UnzipTo" value="{{AddonTemp}}{{AddonName}}_Unzip\"/>
-            <Step level="1" action="download" from="{{DownloadURL}}" to="{{DownloadTo}}" cleanup="1"/>
+            <Step level="1" action="downloadGithub" user="{{GitHubU}}" repo="{{GitHubR}}" version="{{UpstreamVersion}}" file="-x86_64-pc-windows-gnu\.zip" to="{{DownloadTo}}" cleanup="1"/>
             <Step level="2" action="unzip" from="{{DownloadTo}}" to="{{UnzipTo}}" cleanup="1"/>
             <Step level="3" action="move" from="{{UnzipTo}}arcdps_bhud.dll" to="{{GW2Dir}}bin64\arcdps_bhud.dll"/>
         </addon>
@@ -760,10 +763,11 @@ function Update-MyAddonMeta {
         elseif ($addon.InstalledVersion -notin '', $null -and !$addon.enabled) {
             Set-MyAddon -State "Uninstall pending" -id $addon.id
         }   
-        elseif ($addon.InstalledVersion -notin '', $null -and $addon.InstalledVersion -ne $addon.UpstreamVersion) {
+        elseif (($addon.InstalledVersion -notin '', $null -and $addon.InstalledVersion -ne $addon.UpstreamVersion) -and
+         ($addon.InstalledVersion -notin '', $null -and $addon.InstalledVersion -ne (($addon.UpstreamVersion) -replace '^v'))) { #temporary change, during the transition to full git tags in upstream version (they include a "v")
             Set-MyAddon -State "Update Available" -id $addon.id
         } 
-        elseif ($addon.InstalledVersion -notin '', $null -and $addon.InstalledVersion -eq $addon.UpstreamVersion) {
+        elseif ($addon.InstalledVersion -notin '', $null -and ($addon.InstalledVersion -eq $addon.UpstreamVersion -or $addon.InstalledVersion -eq ($addon.UpstreamVersion -replace '^v'))) {
             Set-MyAddon -State "Installed" -id $addon.id
         } 
         elseif ($addon.InstalledVersion -in '', $null -and !$addon.enabled) {
@@ -795,7 +799,7 @@ function ParseNodeValue ( $Node, [string]$AddonID ) {
             }
             catch {
                 write-error "Couldn't parse value $Val `r`nfrom Node:"
-                write-error $Node.outerxml
+                write-error $Node.tostring()
                 Throw $_
             }
         }
@@ -954,7 +958,7 @@ if ($UseParallel -and $PSVersionTable.PSVersion.Major -ge 7) {
         $script:ObjAddon | Where-Object { $_.id -eq $id } | add-member -type NoteProperty -name "Steps" -value @()
         foreach ($step in (Select-Xml -Xml $using:XMLVars -XPath "/xml/addons/addon[@id='$id']/Step").node) {
             $objStep = new-object system.object
-            foreach ($attr in @("IfIDs", "IfNotIDs", "from", "to", "level", "action")) {
+            foreach ($attr in @("IfIDs", "IfNotIDs", "from", "to", "level", "action", "user", "repo", "version", "file")) {
                 if ($step.$attr) {
                     $objStep | add-member -type NoteProperty -name $attr -value (parsevalue -value ($step.$attr) -Addonid $id)
                 }
@@ -1338,7 +1342,7 @@ function DoAddonStep {
                     start-sleep -seconds ($ErrCount * 2)
                     try {
                         write-host "executing step action=$($step.action) level=$Level for addon $($addon.name)..." -ForegroundColor $ForegroundcolorStatusInformation
-
+                        $step | get-member | out-string | write-debug
                         $parentTo = split-path $step.to
                         if(!(test-path $parentTo))
                         {
@@ -1347,6 +1351,7 @@ function DoAddonStep {
 
                         switch ($step.action) {
                             "download" { DownloadFile -from $Step.from -to $Step.to -ErrorAction stop }
+                            "downloadGitHub" { DownloadGitHub -user $step.user -repo $step.repo -version $step.version -file $step.file -to $Step.to -ErrorAction stop }
                             "Unzip" { Expand-Archive -Path $step.from -DestinationPath $step.to -ErrorAction stop -force }
                             "copy" { get-item $step.from -ErrorAction stop | Copy-Item -destination $Step.to -force -ErrorAction stop }
                             "move" { get-item $step.from -ErrorAction stop | move-Item -destination $Step.to -force -ErrorAction stop }
@@ -1434,6 +1439,42 @@ function UnDoAddonStep {
             $Addon
         }
     }
+}
+
+function DownloadGitHub {
+    param (
+        [ValidateNotNullOrEmpty()][string] $user,
+        [ValidateNotNullOrEmpty()][string] $repo,
+        [ValidateNotNullOrEmpty()][string] $version = 'latest',
+        [ValidateNotNullOrEmpty()][string] $file,
+        [ValidateNotNullOrEmpty()][string] $to
+    )
+
+    if($Version -eq 'Latest')
+    {
+        $Version = (((Invoke-webrequest  "https://github.com/$user/$repo/releases/latest/" -usebasicparsing).content | sls -pattern 'releases/expanded_assets/([\S]*)' -allmatches).matches.groups[1]).value
+    }
+    
+    try{
+        $Asset = (((Invoke-Webrequest "https://github.com/$user/$repo/releases/expanded_assets/$version" -usebasicparsing).content  | sls -pattern 'href="([\S]*)"' -AllMatches).matches.groups | ?{$_.name -eq 1}).value | ?{ $_ -match $file} 
+    }
+    catch {
+        throw "couldn't get assets from github from ""https://github.com/$user/$repo/releases/expanded_assets/$version"" with: $_ "
+    }
+    
+    if($asset.count -gt 1)
+    {
+        throw "couldn't get asset from github ""https://github.com/$user/$repo/releases/expanded_assets/$version"" since there are $($asset.count) matches for ""$file"":`r`n $($asset -join "`r`n")"
+    }
+    
+    try{
+        DownloadFile -from ('https://github.com'+$asset) -to $to 
+    }
+    catch {
+        Write-host "couldn't download from github from ('https://github.com'+$asset) to $to with: $_"
+        throw "couldn't download from github from ('https://github.com'+$asset) to $to with: $_"
+    }
+    
 }
 
 function DownloadFile {

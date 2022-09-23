@@ -15,7 +15,7 @@ If ($PSBoundParameters["Debug"]) {
     $DebugPreference = "Continue"
 }
 
-$Version = "1.8.1.0" #Major.Minor.Build.Revision
+$Version = "1.9.0.0" #Major.Minor.Build.Revision
 
 function mylog
 {

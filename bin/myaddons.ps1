@@ -146,10 +146,11 @@ function Update-MyAddonMeta {
         elseif ($addon.InstalledVersion -notin '', $null -and !$addon.enabled) {
             Set-MyAddon -State "Uninstall pending" -id $addon.id
         }   
-        elseif ($addon.InstalledVersion -notin '', $null -and $addon.InstalledVersion -ne $addon.UpstreamVersion) {
+        elseif (($addon.InstalledVersion -notin '', $null -and $addon.InstalledVersion -ne $addon.UpstreamVersion) -and
+         ($addon.InstalledVersion -notin '', $null -and $addon.InstalledVersion -ne (($addon.UpstreamVersion) -replace '^v'))) { #temporary change, during the transition to full git tags in upstream version (they include a "v")
             Set-MyAddon -State "Update Available" -id $addon.id
         } 
-        elseif ($addon.InstalledVersion -notin '', $null -and $addon.InstalledVersion -eq $addon.UpstreamVersion) {
+        elseif ($addon.InstalledVersion -notin '', $null -and ($addon.InstalledVersion -eq $addon.UpstreamVersion -or $addon.InstalledVersion -eq ($addon.UpstreamVersion -replace '^v'))) {
             Set-MyAddon -State "Installed" -id $addon.id
         } 
         elseif ($addon.InstalledVersion -in '', $null -and !$addon.enabled) {

@@ -18,7 +18,7 @@ function ParseNodeValue ( $Node, [string]$AddonID ) {
             }
             catch {
                 write-error "Couldn't parse value $Val `r`nfrom Node:"
-                write-error $Node.outerxml
+                write-error $Node.tostring()
                 Throw $_
             }
         }
@@ -177,7 +177,7 @@ if ($UseParallel -and $PSVersionTable.PSVersion.Major -ge 7) {
         $script:ObjAddon | Where-Object { $_.id -eq $id } | add-member -type NoteProperty -name "Steps" -value @()
         foreach ($step in (Select-Xml -Xml $using:XMLVars -XPath "/xml/addons/addon[@id='$id']/Step").node) {
             $objStep = new-object system.object
-            foreach ($attr in @("IfIDs", "IfNotIDs", "from", "to", "level", "action")) {
+            foreach ($attr in @("IfIDs", "IfNotIDs", "from", "to", "level", "action", "user", "repo", "version", "file")) {
                 if ($step.$attr) {
                     $objStep | add-member -type NoteProperty -name $attr -value (parsevalue -value ($step.$attr) -Addonid $id)
                 }

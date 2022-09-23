@@ -110,7 +110,7 @@ function DoAddonStep {
                     start-sleep -seconds ($ErrCount * 2)
                     try {
                         write-host "executing step action=$($step.action) level=$Level for addon $($addon.name)..." -ForegroundColor $ForegroundcolorStatusInformation
-
+                        $step | get-member | out-string | write-debug
                         $parentTo = split-path $step.to
                         if(!(test-path $parentTo))
                         {
@@ -119,6 +119,7 @@ function DoAddonStep {
 
                         switch ($step.action) {
                             "download" { DownloadFile -from $Step.from -to $Step.to -ErrorAction stop }
+                            "downloadGitHub" { DownloadGitHub -user $step.user -repo $step.repo -version $step.version -file $step.file -to $Step.to -ErrorAction stop }
                             "Unzip" { Expand-Archive -Path $step.from -DestinationPath $step.to -ErrorAction stop -force }
                             "copy" { get-item $step.from -ErrorAction stop | Copy-Item -destination $Step.to -force -ErrorAction stop }
                             "move" { get-item $step.from -ErrorAction stop | move-Item -destination $Step.to -force -ErrorAction stop }
@@ -206,6 +207,42 @@ function UnDoAddonStep {
             $Addon
         }
     }
+}
+
+function DownloadGitHub {
+    param (
+        [ValidateNotNullOrEmpty()][string] $user,
+        [ValidateNotNullOrEmpty()][string] $repo,
+        [ValidateNotNullOrEmpty()][string] $version = 'latest',
+        [ValidateNotNullOrEmpty()][string] $file,
+        [ValidateNotNullOrEmpty()][string] $to
+    )
+
+    if($Version -eq 'Latest')
+    {
+        $Version = (((Invoke-webrequest  "https://github.com/$user/$repo/releases/latest/" -usebasicparsing).content | sls -pattern 'releases/expanded_assets/([\S]*)' -allmatches).matches.groups[1]).value
+    }
+    
+    try{
+        $Asset = (((Invoke-Webrequest "https://github.com/$user/$repo/releases/expanded_assets/$version" -usebasicparsing).content  | sls -pattern 'href="([\S]*)"' -AllMatches).matches.groups | ?{$_.name -eq 1}).value | ?{ $_ -match $file} 
+    }
+    catch {
+        throw "couldn't get assets from github from ""https://github.com/$user/$repo/releases/expanded_assets/$version"" with: $_ "
+    }
+    
+    if($asset.count -gt 1)
+    {
+        throw "couldn't get asset from github ""https://github.com/$user/$repo/releases/expanded_assets/$version"" since there are $($asset.count) matches for ""$file"":`r`n $($asset -join "`r`n")"
+    }
+    
+    try{
+        DownloadFile -from ('https://github.com'+$asset) -to $to 
+    }
+    catch {
+        Write-host "couldn't download from github from ('https://github.com'+$asset) to $to with: $_"
+        throw "couldn't download from github from ('https://github.com'+$asset) to $to with: $_"
+    }
+    
 }
 
 function DownloadFile {
