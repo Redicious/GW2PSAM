@@ -178,8 +178,10 @@
             <Step level="2" action="Unzip" from="{{DownloadTo}}" to="{{UnzipTo}}" cleanup="1"/>
             <Step level="3" action="move" from="{{UnzipTo}}addonLoader.dll" to="{{GW2Dir}}addonLoader.dll"/>
             <Step level="4" action="move" from="{{UnzipTo}}d3d11.dll" to="{{GW2Dir}}d3d11.dll"/>
-            <Step level="5" action="move" from="{{UnzipTo}}dxgi.dll" to="{{GW2Dir}}dxgi.dll"/>
-            <Step level="6" action="move" from="{{UnzipTo}}bin64\d3d9.dll" to="{{GW2Dir}}bin64\d3d9.dll"/>
+            <Step level="5" action="copy" from="{{UnzipTo}}bin64\cef\dxgi.dll" to="{{GW2Dir}}bin64\dxgi.dll"/>
+            <Step level="6" action="copy" from="{{UnzipTo}}bin64\cef\dxgi.dll" to="{{GW2Dir}}dxgi.dll"/>
+            <Step level="7" action="copy" from="{{UnzipTo}}bin64\cef\dxgi.dll" to="{{GW2Dir}}bin64\cef\dxgi.dll"/>
+            <Step level="8" action="deleteifexists" from="{{GW2Dir}}bin64\d3d9.dll"/>
         </addon>
         <addon id="21">
             <add key="Name" value="d3d9_wrapper"/>

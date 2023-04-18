@@ -111,10 +111,13 @@ function DoAddonStep {
                     try {
                         write-host "executing step action=$($step.action) level=$Level for addon $($addon.name)..." -ForegroundColor $ForegroundcolorStatusInformation
                         $step | get-member | out-string | write-debug
-                        $parentTo = split-path $step.to
-                        if(!(test-path $parentTo))
+                        if("deleteifexists" -ne $step.action)
                         {
-                            new-item -type directory -path $parentTo -force -ErrorAction stop
+                            $parentTo = split-path $step.to
+                            if(!(test-path $parentTo))
+                            {
+                                new-item -type directory -path $parentTo -force -ErrorAction stop
+                            }
                         }
 
                         switch ($step.action) {
@@ -123,6 +126,7 @@ function DoAddonStep {
                             "Unzip" { Expand-Archive -Path $step.from -DestinationPath $step.to -ErrorAction stop -force }
                             "copy" { get-item $step.from -ErrorAction stop | Copy-Item -destination $Step.to -force -ErrorAction stop }
                             "move" { get-item $step.from -ErrorAction stop | move-Item -destination $Step.to -force -ErrorAction stop }
+                            "deleteifexists" { if(test-path -path $step.from) { remove-Item -path $step.from -force -ErrorAction stop } }
                             default { Throw "Internal Error: unknown action type $($Step.action)" }
                         }
                         $done = $true
@@ -175,6 +179,10 @@ function UnDoAddonStep {
                         if($step.action -eq "unzip")
                         {
                             mydebug "Can't perform undo for unzipping $($step.from) to $($step.to) - sorry, but the risk is too high. For now... "
+                        }
+                        elseif($step.action -eq "deleteifexists")
+                        {
+                            mydebug "Can't perform undo for deleting $($step.from)"
                         }
                         elseif($step.from -match "\*")
                         {
