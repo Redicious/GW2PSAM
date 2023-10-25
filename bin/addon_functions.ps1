@@ -23,8 +23,6 @@ function Set-Addon {
     $InstallAddons.ID | ForEach-Object{ $AffectedIDs += $_ }
     $AffectedIDs = $AffectedIDs | Where-Object{ $_ -notin '',0,$null }| Sort-Object -Unique
 
-
-
     # Find Addons that need to be reinstalled, due to above changes
     $ReinstallAddons = $Addons | Where-Object { (Test-CrossContains -a $_.Steps.IfIds -b $AffectedIDs) -or  (Test-CrossContains -a $_.Steps.IfNotIds -b $AffectedIDs) } 
     $ReinstallAddons | ForEach-Object { $UninstallAddons += $_; $InstallAddons += $_   }

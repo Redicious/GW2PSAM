@@ -8,6 +8,7 @@ Param(
     [Parameter(Mandatory = $false,ParameterSetName='help')][Switch] $help,
     [Parameter(Mandatory = $false)][Switch] $IgnoreRemoteUpdate,
     [Parameter(Mandatory = $false)][Switch] $NoParallelExec,
+    [Parameter(Mandatory = $false)][Switch] $ViewDeprecated,
     [Parameter(Mandatory = $false)][Switch] $Exe
 )
 
@@ -15,7 +16,7 @@ If ($PSBoundParameters["Debug"]) {
     $DebugPreference = "Continue"
 }
 
-$Version = "1.9.1.3" #Major.Minor.Build.Revision
+$Version = "1.9.2.0" #Major.Minor.Build.Revision
 
 function mylog
 {
@@ -372,6 +373,7 @@ $XMLVars = [XML]@'
         Don't mess with it
     -->        
         <addon id="1">
+            <add key="Deprecated" value="True"/>
             <add key="Name" value="GW2Radial (DX9) (outdated)"/>
             <add key="GitHubU" value="Friendly0Fire"/>
             <add key="GitHubR" value="GW2Radial"/>
@@ -446,6 +448,7 @@ $XMLVars = [XML]@'
             <Step level="1" action="downloadGithub" user="{{GitHubU}}" repo="{{GitHubR}}" version="{{UpstreamVersion}}" file="d3d9_arcdps_table\.dll" to="{{DownloadTo}}"/>
         </addon>
         <addon id="8">
+            <add key="Deprecated" value="True"/>
             <add key="Name" value="Arc DPS Healing Stats (dx9)"/>
             <add key="GitHubU" value="Krappa322"/>
             <add key="GitHubR" value="arcdps_healing_stats"/>
@@ -1039,9 +1042,9 @@ function Invoke-Menu {
             write-warning "you are running an old version of PowerShell ($($PSVersionTable.psversion.tostring())), consider updating!"
         }
 
-        $JA = Get-MyAddonsJoined -UpdateMeta
+        $JoinedAddons = Get-MyAddonsJoined -UpdateMeta | Where-object { $ViewDeprecated -or (!$_.Deprecated -or $_.enabled) } 
 
-        $OptionIndex = ($JA | select-object id -ExpandProperty ID | sort-object ID -Descending | select-object -first 1) + 1
+        $OptionIndex = ($JoinedAddons | select-object id -ExpandProperty ID | sort-object ID -Descending | select-object -first 1) + 1
 
         $Actions = @()
 
@@ -1059,7 +1062,7 @@ function Invoke-Menu {
             #[PSCustomObject]@{ ID = $null; Text = "Update/install one addon..."; Function = "Set-Addon -select" }
         ) | % { $Actions += $_ }
 
-        if (($JA | ? { $_.id -eq 2 }).InstalledVersion -notin '', $null) {
+        if (($JoinedAddons | ? { $_.id -eq 2 }).InstalledVersion -notin '', $null) {
             @(
                 [PSCustomObject]@{ ID = "T"; Text = "Run Taco"; Function = "Invoke-Taco"; EXE=$true  },
                 [PSCustomObject]@{ ID = "TR"; Text = "Run Taco & GW2"; Function = "Invoke-Taco; Invoke-GW2"; EXE=$true  }
@@ -1072,7 +1075,7 @@ function Invoke-Menu {
             )  | % { $Actions += $_ }
         }
 
-        if (($JA | ? { $_.id -eq 10 }).InstalledVersion -notin '', $null) {
+        if (($JoinedAddons | ? { $_.id -eq 10 }).InstalledVersion -notin '', $null) {
             @(
                 [PSCustomObject]@{ ID = "B"; Text = "Run Blish Hud"; Function = "Invoke-BlishHud"; EXE=$true  },
                 [PSCustomObject]@{ ID = "BR"; Text = "Run Blish Hud & GW2"; Function = "Invoke-BlishHud; Invoke-GW2"; EXE=$true  }
@@ -1107,7 +1110,7 @@ function Invoke-Menu {
         $Actions | Where-Object { $null -eq $_.id } | ForEach-Object { $_.id = $OptionIndex; $OptionIndex++ }
         
         write-host "Addons" -ForegroundColor $MenuHeadColor
-        $JA | select-object @{Name = 'Toggle' ; Expression = { if ($_.ID -ne "-") { "[" + $_.ID + "]" } else { " " + $_.ID + " " } } }, name, enabled, state, InstalledVersion, UpstreamVersion | Format-Table -AutoSize
+        $JoinedAddons | select-object @{Name = 'Toggle' ; Expression = { if ($_.ID -ne "-") { "[" + $_.ID + "]" } else { " " + $_.ID + " " } } }, name, enabled, state, InstalledVersion, UpstreamVersion | Format-Table -AutoSize
 
         write-host "Actions" -ForegroundColor $MenuHeadColor
         $Actions | select-object @{Name = 'Select' ; Expression = { if ($_.ID -ne "-") { "[" + $_.ID + "]" } else { " " + $_.ID + " " } } }, Text | Format-Table -AutoSize -HideTableHeaders
@@ -1121,7 +1124,7 @@ function Invoke-Menu {
         write-host "`r`nChoose wisely, like Wesly"
 
         # Adding addon toggle to actions, AFTER they are displayed, as we don't want to show them twice.
-        foreach ($J in $JA) {
+        foreach ($J in $JoinedAddons) {
             mydebug "Adding addon to actions: $($J.ID) $($J.name): ""Toggle-Addon -id $($J.id)"" "
             $Actions += [PSCustomObject]@{ ID = $J.ID; Text = "Toggle enabled flag of Addon ""$($J.name)"""; Function = "Toggle-Addon -id $($J.id)" }
         }
@@ -1256,8 +1259,6 @@ function Set-Addon {
     $UninstallAddons.ID | ForEach-Object{ $AffectedIDs += $_ }
     $InstallAddons.ID | ForEach-Object{ $AffectedIDs += $_ }
     $AffectedIDs = $AffectedIDs | Where-Object{ $_ -notin '',0,$null }| Sort-Object -Unique
-
-
 
     # Find Addons that need to be reinstalled, due to above changes
     $ReinstallAddons = $Addons | Where-Object { (Test-CrossContains -a $_.Steps.IfIds -b $AffectedIDs) -or  (Test-CrossContains -a $_.Steps.IfNotIds -b $AffectedIDs) } 

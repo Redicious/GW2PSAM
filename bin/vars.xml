@@ -33,6 +33,7 @@
         Don't mess with it
     -->        
         <addon id="1">
+            <add key="Deprecated" value="True"/>
             <add key="Name" value="GW2Radial (DX9) (outdated)"/>
             <add key="GitHubU" value="Friendly0Fire"/>
             <add key="GitHubR" value="GW2Radial"/>
@@ -107,6 +108,7 @@
             <Step level="1" action="downloadGithub" user="{{GitHubU}}" repo="{{GitHubR}}" version="{{UpstreamVersion}}" file="d3d9_arcdps_table\.dll" to="{{DownloadTo}}"/>
         </addon>
         <addon id="8">
+            <add key="Deprecated" value="True"/>
             <add key="Name" value="Arc DPS Healing Stats (dx9)"/>
             <add key="GitHubU" value="Krappa322"/>
             <add key="GitHubR" value="arcdps_healing_stats"/>

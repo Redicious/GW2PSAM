@@ -30,9 +30,9 @@ function Invoke-Menu {
             write-warning "you are running an old version of PowerShell ($($PSVersionTable.psversion.tostring())), consider updating!"
         }
 
-        $JA = Get-MyAddonsJoined -UpdateMeta
+        $JoinedAddons = Get-MyAddonsJoined -UpdateMeta | Where-object { $ViewDeprecated -or (!$_.Deprecated -or $_.enabled) } 
 
-        $OptionIndex = ($JA | select-object id -ExpandProperty ID | sort-object ID -Descending | select-object -first 1) + 1
+        $OptionIndex = ($JoinedAddons | select-object id -ExpandProperty ID | sort-object ID -Descending | select-object -first 1) + 1
 
         $Actions = @()
 
@@ -50,7 +50,7 @@ function Invoke-Menu {
             #[PSCustomObject]@{ ID = $null; Text = "Update/install one addon..."; Function = "Set-Addon -select" }
         ) | % { $Actions += $_ }
 
-        if (($JA | ? { $_.id -eq 2 }).InstalledVersion -notin '', $null) {
+        if (($JoinedAddons | ? { $_.id -eq 2 }).InstalledVersion -notin '', $null) {
             @(
                 [PSCustomObject]@{ ID = "T"; Text = "Run Taco"; Function = "Invoke-Taco"; EXE=$true  },
                 [PSCustomObject]@{ ID = "TR"; Text = "Run Taco & GW2"; Function = "Invoke-Taco; Invoke-GW2"; EXE=$true  }
@@ -63,7 +63,7 @@ function Invoke-Menu {
             )  | % { $Actions += $_ }
         }
 
-        if (($JA | ? { $_.id -eq 10 }).InstalledVersion -notin '', $null) {
+        if (($JoinedAddons | ? { $_.id -eq 10 }).InstalledVersion -notin '', $null) {
             @(
                 [PSCustomObject]@{ ID = "B"; Text = "Run Blish Hud"; Function = "Invoke-BlishHud"; EXE=$true  },
                 [PSCustomObject]@{ ID = "BR"; Text = "Run Blish Hud & GW2"; Function = "Invoke-BlishHud; Invoke-GW2"; EXE=$true  }
@@ -98,7 +98,7 @@ function Invoke-Menu {
         $Actions | Where-Object { $null -eq $_.id } | ForEach-Object { $_.id = $OptionIndex; $OptionIndex++ }
         
         write-host "Addons" -ForegroundColor $MenuHeadColor
-        $JA | select-object @{Name = 'Toggle' ; Expression = { if ($_.ID -ne "-") { "[" + $_.ID + "]" } else { " " + $_.ID + " " } } }, name, enabled, state, InstalledVersion, UpstreamVersion | Format-Table -AutoSize
+        $JoinedAddons | select-object @{Name = 'Toggle' ; Expression = { if ($_.ID -ne "-") { "[" + $_.ID + "]" } else { " " + $_.ID + " " } } }, name, enabled, state, InstalledVersion, UpstreamVersion | Format-Table -AutoSize
 
         write-host "Actions" -ForegroundColor $MenuHeadColor
         $Actions | select-object @{Name = 'Select' ; Expression = { if ($_.ID -ne "-") { "[" + $_.ID + "]" } else { " " + $_.ID + " " } } }, Text | Format-Table -AutoSize -HideTableHeaders
@@ -112,7 +112,7 @@ function Invoke-Menu {
         write-host "`r`nChoose wisely, like Wesly"
 
         # Adding addon toggle to actions, AFTER they are displayed, as we don't want to show them twice.
-        foreach ($J in $JA) {
+        foreach ($J in $JoinedAddons) {
             mydebug "Adding addon to actions: $($J.ID) $($J.name): ""Toggle-Addon -id $($J.id)"" "
             $Actions += [PSCustomObject]@{ ID = $J.ID; Text = "Toggle enabled flag of Addon ""$($J.name)"""; Function = "Toggle-Addon -id $($J.id)" }
         }

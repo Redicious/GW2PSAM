@@ -8,6 +8,7 @@ Param(
     [Parameter(Mandatory = $false,ParameterSetName='help')][Switch] $help,
     [Parameter(Mandatory = $false)][Switch] $IgnoreRemoteUpdate,
     [Parameter(Mandatory = $false)][Switch] $NoParallelExec,
+    [Parameter(Mandatory = $false)][Switch] $ViewDeprecated,
     [Parameter(Mandatory = $false)][Switch] $Exe
 )
 
@@ -15,7 +16,7 @@ If ($PSBoundParameters["Debug"]) {
     $DebugPreference = "Continue"
 }
 
-$Version = "1.9.1.3" #Major.Minor.Build.Revision
+$Version = "1.9.2.0" #Major.Minor.Build.Revision
 
 function mylog
 {
