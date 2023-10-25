@@ -15,7 +15,7 @@ If ($PSBoundParameters["Debug"]) {
     $DebugPreference = "Continue"
 }
 
-$Version = "1.9.1.2" #Major.Minor.Build.Revision
+$Version = "1.9.1.3" #Major.Minor.Build.Revision
 
 function mylog
 {
@@ -1195,7 +1195,7 @@ function Invoke-BlishHud {
         Write-Warning "Blish Hud already running!"
     }
     else {
-        Start-Process -FilePath $BlishExec -WorkingDirectory $TacoDir
+        Start-Process -FilePath $BlishExec -WorkingDirectory $BlishDir
 
         #Sometimes it does not start...WHY!??! Just wait a few seconds and then try again. 
         $startTime = get-date   
@@ -1205,7 +1205,7 @@ function Invoke-BlishHud {
         } 
         if((-not (get-process | Where-Object { $_.path -eq $BlishExec })))
         {
-            Start-Process -FilePath $BlishExec -WorkingDirectory $TacoDir
+            Start-Process -FilePath $BlishExec -WorkingDirectory $BlishDir
         }
     }
 }

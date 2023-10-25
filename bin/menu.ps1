@@ -186,7 +186,7 @@ function Invoke-BlishHud {
         Write-Warning "Blish Hud already running!"
     }
     else {
-        Start-Process -FilePath $BlishExec -WorkingDirectory $TacoDir
+        Start-Process -FilePath $BlishExec -WorkingDirectory $BlishDir
 
         #Sometimes it does not start...WHY!??! Just wait a few seconds and then try again. 
         $startTime = get-date   
@@ -196,7 +196,7 @@ function Invoke-BlishHud {
         } 
         if((-not (get-process | Where-Object { $_.path -eq $BlishExec })))
         {
-            Start-Process -FilePath $BlishExec -WorkingDirectory $TacoDir
+            Start-Process -FilePath $BlishExec -WorkingDirectory $BlishDir
         }
     }
 }
